@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TestCompose</string>
+    <string name="videos_now_playing">Videos now playing</string>
+</resources>
