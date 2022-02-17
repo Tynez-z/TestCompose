@@ -28,10 +28,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MoviesViewModel @Inject constructor
     (@ApplicationContext val context: Context,
-    private val getMoviesUseCase: GetMoviesUseCase
-) : ViewModel() {
+    private val getMoviesUseCase: GetMoviesUseCase) : ViewModel() {
 
-    val movies : Flow<PagingData<Movies>> = Pager(PagingConfig(pageSize = 10)) {
+    val movies: Flow<PagingData<Movies>> = Pager(PagingConfig(10)) {
         MoviePageSource(getMoviesUseCase)
     }.flow
 }

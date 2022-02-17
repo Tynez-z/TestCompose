@@ -9,6 +9,7 @@ import com.example.testCompose.data.repository.MoviesRepository
 import com.example.testCompose.domain.entity.Movies
 import com.example.testCompose.domain.interactor.useCase.GetMoviesUseCase
 import retrofit2.HttpException
+import javax.inject.Inject
 
 class MoviePageSource(
     private val getMoviesUseCase: GetMoviesUseCase,
@@ -25,12 +26,12 @@ class MoviePageSource(
         return try {
             val nextPage = params.key ?: 1
             val totalPages: Int = params.loadSize.coerceAtMost(ApiMovies.MAX_PAGE_SIZE)
-            val response = getMoviesUseCase.execute(nextPage, totalPages)
+            val response = getMoviesUseCase.execute(nextPage)
 
             LoadResult.Page(
                 data = response.body()!!.results,
                 prevKey = if (nextPage == 1) null else nextPage -1,
-                nextKey = if(response.body()!!.results.size < totalPages) null else nextPage + 1
+                nextKey = if(response.body()!!.page > totalPages) null else nextPage + 1
 //                nextKey = if (response.body() == null) null else response.body()!!.page.plus(1)
             )
         } catch (e: Exception) {

@@ -8,6 +8,8 @@ import com.example.testCompose.data.db.remote.service.ApiMovies.Companion.API_KE
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.entity.review.Reviews
+import com.example.testCompose.domain.entity.search.SearchMovies
+import com.example.testCompose.domain.entity.similarMovies.SimilarMovies
 import com.example.testCompose.domain.entity.video.VideoList
 import com.example.testCompose.domain.exception.Failure
 import com.example.testCompose.domain.type.Either
@@ -20,8 +22,14 @@ class MoviesRemoteImpl @Inject constructor(
     private val apiMovies: ApiMovies
 ) : MoviesRemote {
 
-    override suspend fun getMovies(pageNumber: Int, totalPages: Int): Response<MoviesResponse> =
-        apiMovies.getMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber, totalPages = totalPages)
+    override suspend fun getMovies(pageNumber: Int): Response<MoviesResponse> =
+        apiMovies.getMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber)
+
+    override suspend fun getSearchMovies(pageNumber: Int, query: String): Response<SearchMovies> =
+        apiMovies.getSearchMovie(api_key = BuildConfig.API_KEY, pageNumber = pageNumber, query = query)
+
+    override suspend fun getSimilarMovies(pageNumber: Int, movieId: Int): Response<SimilarMovies> =
+        apiMovies.getSimilarMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber, movie_id = movieId)
 
     override fun getMovieDetails(movieId: Int): Either<Failure, MovieDetails> = request.make(apiMovies.getMovieDetails(movie_id = movieId, api_key = BuildConfig.API_KEY))
 

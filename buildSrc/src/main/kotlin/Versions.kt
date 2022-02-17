@@ -22,8 +22,7 @@ object Versions {
     const val room = "2.3.0"
 
     //coil
-    const val coil = "1.4.4"
-    const val coilAccompanist = "0.3.3.1"
+    const val coil = "1.4.3"
 
     //retrofit
     const val retrofit = "2.9.0"

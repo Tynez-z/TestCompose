@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">TestCompose</string>
     <string name="videos_now_playing">Videos now playing</string>
+    <string name="time">%02d:%02d</string>
+
+    <string name="play">Play</string>
+    <string name="info">Info</string>
+    <string name="download">Download</string>
+    <string name="preview">Preview</string>
+    <string name="episodesAndInfo">Episodes &amp; Info</string>
+
 </resources>

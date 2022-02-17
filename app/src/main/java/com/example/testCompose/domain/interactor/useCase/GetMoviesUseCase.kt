@@ -14,6 +14,6 @@ class GetMoviesUseCase @Inject constructor(private val repository: MoviesReposit
 //        repository.getMovies(params.pageNumber)
 
     //    data class Params(val pageNumber : Int)
-    suspend fun execute(pageNumber: Int, totalPages: Int): Response<MoviesResponse> =
-        repository.getMovies(pageNumber, totalPages)
+    suspend fun execute(pageNumber: Int): Response<MoviesResponse> =
+        repository.getMovies(pageNumber)
 }

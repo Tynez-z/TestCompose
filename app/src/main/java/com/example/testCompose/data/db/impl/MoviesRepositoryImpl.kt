@@ -5,6 +5,8 @@ import com.example.testCompose.data.repository.MoviesRepository
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.entity.review.Reviews
+import com.example.testCompose.domain.entity.search.SearchMovies
+import com.example.testCompose.domain.entity.similarMovies.SimilarMovies
 import com.example.testCompose.domain.entity.video.VideoList
 import com.example.testCompose.domain.exception.Failure
 import com.example.testCompose.domain.type.Either
@@ -16,9 +18,16 @@ class MoviesRepositoryImpl @Inject constructor(private val moviesRemote: MoviesR
 //        return moviesRemote.getMovies()
 //    }
 
-    override suspend fun getMovies(pageNumber: Int, totalPages: Int): Response<MoviesResponse> {
-        return moviesRemote.getMovies(pageNumber, totalPages)
+    override suspend fun getMovies(pageNumber: Int): Response<MoviesResponse> {
+        return moviesRemote.getMovies(pageNumber)
     }
+
+    override suspend fun getSearchMovies(pageNumber: Int, query: String): Response<SearchMovies> {
+        return moviesRemote.getSearchMovies(pageNumber = pageNumber, query = query)
+    }
+
+    override suspend fun getSimilarMovies(pageNumber: Int, movieId: Int): Response<SimilarMovies> =
+        moviesRemote.getSimilarMovies(pageNumber = pageNumber, movieId = movieId)
 
     override fun getMovieDetails(movieId: Int): Either<Failure, MovieDetails> {
         return moviesRemote.getMovieDetails(movieId = movieId)

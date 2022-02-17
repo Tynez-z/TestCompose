@@ -1,16 +1,10 @@
 package com.example.testCompose.common
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.constraintlayout.widget.Placeholder
-import com.example.testCompose.presentation.ui.theme.shimmerHighLightColor
 import com.skydoves.landscapist.CircularReveal
 import com.skydoves.landscapist.ShimmerParams
 import com.skydoves.landscapist.coil.CoilImage
@@ -25,16 +19,8 @@ fun NetworkImage(
     placeholder: ImageBitmap? = null,
     contentScale: ContentScale = ContentScale.FillBounds,
     bitmapPalette: BitmapPalette? = null,
-    shimmerParams: ShimmerParams? = ShimmerParams(
-        baseColor = MaterialTheme.colors.background,
-        highlightColor = shimmerHighLightColor,
-        dropOff = 0.65f,
-        tilt = 20f,
-        durationMillis = 350
-    ),
-
-    ) {
-
+    shimmerParams: ShimmerParams? = null,
+) {
     if (networkUrl == null) {
         CoilImage(
             imageModel = networkUrl,
@@ -59,49 +45,92 @@ fun NetworkImage(
                 R.drawable.nophoto
             )
         )
-    }
 
-//    val url = networkUrl ?: return
-//    if (shimmerParams == null) {
+    }
+}
+
+//@Composable
+//fun NetworkImage(
+//    networkUrl: Any?,
+//    modifier: Modifier = Modifier,
+//    context: Context = LocalContext.current,
+//    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
+//    alignment: Alignment = Alignment.Center,
+//    alpha: Float = DefaultAlpha,
+//    contentScale: ContentScale = ContentScale.Crop,
+//    circularReveal: CircularReveal? = null,
+//    colorFilter: ColorFilter? = null,
+//    placeHolder: Any? = null,
+//    error: Any? = null,
+//    @DrawableRes previewPlaceholder: Int = 0,
+//    loading: @Composable ((imageState: CoilImageState.Loading) -> Unit)? = null,
+//    success: @Composable ((imageState: CoilImageState.Success) -> Unit)? = null,
+//    failure: @Composable ((imageState: CoilImageState.Failure) -> Unit)? = null,
+//) {
+//    if (networkUrl == null) {
 //        CoilImage(
-//            imageModel = url,
+//            imageModel = networkUrl,
+//            context = context,
+//            lifecycleOwner = lifecycleOwner,
 //            modifier = modifier,
-//            circularReveal = circularReveal,
+//            alignment = alignment,
 //            contentScale = contentScale,
-//            bitmapPalette = bitmapPalette,
-//            loading = {
-//                ShimmerParams(
-//                    baseColor = MaterialTheme.colors.background,
-//                    highlightColor = shimmerHighLightColor,
-//                    dropOff = 0.65f,
-//                    tilt = 20f,
-//                    durationMillis = 350
-//                )
-//            },
-//            failure = {
-//                Text(
-//                    text = "image request failed.",
-//                    textAlign = TextAlign.Center,
-//                    style = MaterialTheme.typography.body2,
-//                    modifier = Modifier.fillMaxSize()
-//                )
-//            }
+//            alpha = alpha,
+//            colorFilter = colorFilter,
+//            circularReveal = circularReveal,
+//            previewPlaceholder = previewPlaceholder,
+//            placeHolder = ImageBitmap.imageResource(R.drawable.nophoto),
+////            error = ImageBitmap.imageResource(
+////                R.drawable.nophoto
+////            )
 //        )
 //    } else {
 //        CoilImage(
-//            imageModel = url,
+//            imageModel = networkUrl,
+//            context = context,
+//            lifecycleOwner = lifecycleOwner,
 //            modifier = modifier,
-//            circularReveal = circularReveal,
+//            alignment = alignment,
 //            contentScale = contentScale,
-//            bitmapPalette = bitmapPalette,
-//            loading = {ShimmerParams(
-//                baseColor = MaterialTheme.colors.background,
-//                highlightColor = shimmerHighLightColor,
-//                dropOff = 0.65f,
-//                tilt = 20f,
-//                durationMillis = 350
-//            )},
+//            alpha = alpha,
+//            colorFilter = colorFilter,
+//            circularReveal = circularReveal,
+//            previewPlaceholder = previewPlaceholder,
+//            loading = {
+////                placeHolder?.let {
+////                    ImageBySource(
+////                        source = ImageBitmap.imageResource(R.drawable.nophoto),
+////                        modifier = modifier,
+////                        alignment = alignment,
+////                        contentDescription = contentDescription,
+////                        contentScale = ContentScale.Crop,
+////                        colorFilter = colorFilter,
+////                        alpha = alpha
+////                    )
+////                }
+//                PagingLoadItem()
+//            },
+//            failure = {
+//                placeHolder.let {
+//                    ImageBitmap.imageResource(R.drawable.nophoto)
+//                }
 //
+////                error?.let {
+////                    ImageBySource(
+////                        source = ImageBitmap.imageResource(R.drawable.nophoto),
+////                        modifier = modifier,
+////                        alignment = alignment,
+////                        contentDescription = contentDescription,
+////                        contentScale = ContentScale.Crop,
+////                        colorFilter = colorFilter,
+////                        alpha = alpha,
+////                    )
+////                }
+//                ImageBitmap.imageResource(R.drawable.nophoto)
+//            }
 //        )
 //    }
-}
+//}
+
+
+

@@ -41,7 +41,6 @@ object Other {
      */
     const val coil = "com.github.skydoves:landscapist-coil:${Versions.coil}"
 
-    const val coil_accompanist = "dev.chrisbanes.accompanist:accompanist-coil:${Versions.coilAccompanist}"
     /**
      * [Paging ]
      * https://developer.android.com/jetpack/androidx/releases/paging

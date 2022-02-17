@@ -1,4 +1,3 @@
-import org.gradle.internal.impldep.com.fasterxml.jackson.core.JsonPointer.compile
 
 plugins {
     id("com.android.application")
@@ -72,13 +71,13 @@ android {
 }
 
 dependencies {
-
-
-
-
     implementation ("com.github.evgenyneu:js-evaluator-for-android:v5.0.0")
     implementation ("com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT")
 
+//    implementation ("com.github.HaarigerHarald:android-youtubeExtractor:v1.7.0")
+
+
+    implementation ("com.google.accompanist:accompanist-swiperefresh:0.22.0-rc")
 
 
     Dependencies.compose.apply {

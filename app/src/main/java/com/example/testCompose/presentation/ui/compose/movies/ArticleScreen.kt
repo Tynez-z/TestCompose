@@ -1,11 +1,8 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.util.SparseArray
-import android.view.RoundedCorner
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.animation.AnimatedVisibility
@@ -15,10 +12,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -27,43 +20,51 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
-import coil.annotation.ExperimentalCoilApi
+import at.huber.youtubeExtractor.VideoMeta
+import at.huber.youtubeExtractor.YtFile
+import com.example.testCompose.common.CircularProgressBar
 import com.example.testCompose.common.NetworkImage
+import com.example.testCompose.common.fromMinutesToHHmm
 import com.example.testCompose.data.db.remote.service.MovieVideo
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.entity.review.Result
-import com.example.testCompose.domain.entity.review.Reviews
 import com.example.testCompose.domain.entity.video.Video
-import com.example.testCompose.domain.entity.video.VideoList
 import com.example.testCompose.presentation.ui.compose.MainDestinations
+import com.example.testCompose.presentation.viewModel.MovieDetailUiState
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
 import com.example.testCompose.presentation.viewModel.MovieVideoViewModel
 import com.example.testCompose.presentation.viewModel.ReviewsViewModel
-import com.google.android.exoplayer2.*
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import testCompose.BuildConfig
+import testCompose.R
 
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
@@ -71,18 +72,9 @@ fun ArticleScreen(
     navController: NavController,
     scaffoldState: ScaffoldState,
     movieId: Int,
-    reviewViewModel: ReviewsViewModel = hiltViewModel()
+    reviewViewModel: ReviewsViewModel = hiltViewModel(),
+    movieDetailViewModel: MovieDetailViewModel = hiltViewModel()
 ) {
-
-//    val uiState by moviesViewModel.uiState.collectAsState()
-
-//    val trailerList by remember {
-//        moviesViewModel.getMovieVideo(movieId = movieId)
-//    }
-
-//    val getVideo by remember {
-//        moviesViewModel.getVideo(movieId = movieId)
-//    }
 
     val getReviews by remember {
         reviewViewModel.getMovieReview(movieId = movieId)
@@ -95,6 +87,11 @@ fun ArticleScreen(
     val viewModel = hiltViewModel<MovieDetailViewModel>()
     val movieDetail = viewModel.movieDetail.value
 
+    val uiState by movieDetailViewModel.uiState.collectAsState()
+
+//    val similarMoviesViewModel = hiltViewModel<SimilarMoviesViewModel>()
+
+
     val playingIndex = remember {
         mutableStateOf(0)
     }
@@ -102,6 +99,7 @@ fun ArticleScreen(
     LaunchedEffect(true) {
         viewModel.getMovieDetails(movieId = movieId)
         movieVideoViewModel.getVideo(movieId = movieId)
+//        similarMoviesViewModel.setMovieId(id = movieId)
     }
 
     Scaffold(
@@ -109,11 +107,11 @@ fun ArticleScreen(
             TopAppBar(
                 title = {},
                 backgroundColor = Color.Transparent.copy(alpha = 1.0f),
-
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.navigate(MainDestinations.MoviesRoute.destination)
-
+                        navController.navigate(MainDestinations.MoviesRoute.destination) {
+                            navController.popBackStack()
+                        }
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
@@ -126,28 +124,75 @@ fun ArticleScreen(
             )
         },
         content = {
+            CircularProgressBar(uiState.isLoadingProgressBar)
             Column(
                 Modifier
                     .fillMaxSize()
 //                    .verticalScroll(rememberScrollState())
             ) {
-                
-                VideoFilms(movieId = movieId)
-//                if (movieDetail != null && getVideo != null) {
-//                    MovieItemDetail(
-//                        movie = movieDetail,
-//                        gameVideos = getVideo, reviews = getReviews
-//                    )
-//                }
+
+//                VideoFilms(movieId = movieId)
+
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing = uiState.isRefreshing),
+                    onRefresh = { movieDetailViewModel.getMovieDetails(movieId) },
+                    indicatorAlignment = Alignment.TopCenter,
+                    indicator = { state, trigger ->
+                        SwipeRefreshIndicator(
+                            state = state,
+                            refreshTriggerDistance = trigger,
+                            scale = true,
+                            contentColor = Color.Red
+                        )
+                    }) {
+                    if (getVideo != null) {
+                        uiState.movieDetailObject?.let { it1 ->
+                            MovieItemDetail(
+                                movie = it1,
+                                gameVideos = getVideo,
+                                reviews = getReviews,
+                                navController = navController,
+                                similarId = movieId
+                            )
+
+                        }
+                    }
+
+                }
+                ShowError(
+                    uiState = uiState,
+                    onChangeNetworkNotificationStateClicked = { movieDetailViewModel.changeIsNetworkError() })
             }
         },
     )
-
 }
 
+
+@Composable
+fun ShowError(
+    uiState: MovieDetailUiState,
+    onChangeNetworkNotificationStateClicked: () -> Unit,
+) {
+    com.example.testCompose.common.Dialog(
+        showDialog = uiState.isNetworkError,
+        title = "No Internet",
+        text = "Please, check your connection",
+        confirmText = "OK",
+        onChangeNotificationStateClicked = onChangeNetworkNotificationStateClicked
+    )
+}
+
+
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
-fun MovieItemDetail(movie: MovieDetails, gameVideos: List<Video>, reviews: List<Result>) {
+fun MovieItemDetail(
+    movie: MovieDetails,
+    gameVideos: List<Video>,
+    reviews: List<Result>,
+    navController: NavController,
+    similarId: Int
+) {
     val playingIndex = remember {
         mutableStateOf(0)
     }
@@ -166,7 +211,6 @@ fun MovieItemDetail(movie: MovieDetails, gameVideos: List<Video>, reviews: List<
                 gameVideos = gameVideos,
 //                playingIndex = playingIndex,
                 modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp)
                     .height(250.dp)
                     .fillMaxWidth(),
                 playingIndex = playingIndex
@@ -181,6 +225,7 @@ fun MovieItemDetail(movie: MovieDetails, gameVideos: List<Video>, reviews: List<
             MovieRelease(
                 release = "Release date: ${movie.release_date}",
                 reated = movie.vote_average,
+                runtime = movie.runtime.toLong(),
                 modifier = Modifier
             )
 
@@ -193,9 +238,15 @@ fun MovieItemDetail(movie: MovieDetails, gameVideos: List<Video>, reviews: List<
             NameReviews()
 
             ShowReviews(reviews = reviews)
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            TestBottomSheet()
+
+            OnClickSimilarFilms(navController = navController, similarMoviesItems = similarId)
+
+            Spacer(modifier = Modifier.height(60.dp))
         }
-
-
     }
 }
 
@@ -234,7 +285,7 @@ fun MovieDescribe(title: String, modifier: Modifier) {
 }
 
 @Composable
-fun MovieRelease(release: String, reated: Double, modifier: Modifier) {
+fun MovieRelease(release: String, reated: Double, runtime: Long, modifier: Modifier) {
     Row(modifier = Modifier.padding(start = 10.dp)) {
         Text(
             text = release,
@@ -253,9 +304,19 @@ fun MovieRelease(release: String, reated: Double, modifier: Modifier) {
                 .border(1.dp, Color.White, RoundedCornerShape(5.dp))
                 .padding(5.dp)
         )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = runtime.fromMinutesToHHmm(runtime),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White,
+            modifier = Modifier
+                .border(1.dp, Color.White, RoundedCornerShape(5.dp))
+                .padding(5.dp)
+        )
+
     }
 }
-
 
 @Composable
 fun NameOfMovie(name: String, modifier: Modifier) {
@@ -286,7 +347,6 @@ private fun ShowReviews(reviews: List<Result>) {
         reviews.forEach { item ->
             ItemReview(reviewItem = item)
         }
-        Spacer(modifier = Modifier.height(60.dp))
     }
 }
 
@@ -304,9 +364,14 @@ private fun ItemReview(reviewItem: Result) {
         Spacer(modifier = Modifier.height(10.dp))
 
         Row(modifier = Modifier) {
-            NetworkImage(networkUrl = iconAvatar, contentScale = ContentScale.Crop, modifier = Modifier
-                .width(30.dp)
-                .height(30.dp))
+            NetworkImage(
+                networkUrl = iconAvatar,
+                contentScale = ContentScale.Crop,
+                placeholder = ImageBitmap.imageResource(R.drawable.placeholdericon),
+                modifier = Modifier
+                    .width(30.dp)
+                    .height(30.dp)
+            )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = reviewItem.author,
@@ -340,151 +405,114 @@ private fun ItemReview(reviewItem: Result) {
     }
 }
 
-
+@ExperimentalMaterialApi
 @Composable
-private fun VideoThumbnail(trailers: List<Video>, context: Context, modifier: Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 10.dp)
-    ) {
-        Text(
-            text = "Trailers",
-            style = TextStyle(Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        )
-        LazyRow {
-            items(trailers.size) {
-                Box(
-                    modifier = Modifier
-                        .padding(end = 10.dp)
-                        .clickable {
+fun TestBottomSheet() {
+    val bottomSheetCoroutineScope = rememberCoroutineScope()
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
+    )
 
-                            val playVideoIntent = Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse(MovieVideo.getYoutubeVideoPath(trailers[it].key))
-                            )
-                            context.startActivity(playVideoIntent)
-
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    NetworkImage(
-                        networkUrl = MovieVideo.getYoutubeThumbnailPath(trailers[it].key),
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(90.dp)
-
-                    )
-
-                    NetworkImage(
-                        networkUrl = MovieVideo.getYoutubeVideoPath(trailers[it].key),
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(90.dp)
-                    )
+    BottomSheetScaffold(scaffoldState = bottomSheetScaffoldState, sheetContent = {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .background(Color.Transparent)
+                .height(200.dp)
+        ) {
+            Text(text = "HELLO FROM SHEET", color = Color.Red)
+        }
+    }, sheetPeekHeight = 0.dp) {
+        Button(onClick = {
+            bottomSheetCoroutineScope.launch {
+                if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
+                    bottomSheetScaffoldState.bottomSheetState.expand()
+                } else {
+                    bottomSheetScaffoldState.bottomSheetState.collapse()
                 }
+            }
+        }) {
+            Row() {
+                Image(
+                    painterResource(id = R.drawable.down),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(17.dp)
+                        .padding(top = 3.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "More like this", fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
             }
         }
     }
 }
 
-
-//@ExperimentalAnimationApi
-//@Composable
-//fun ShowMovieVideos(gameVideos: VideoList) {
-//    val playingIndex = remember {
-//        mutableStateOf(0)
-//    }
-//
-//    fun onTrailerChange(index: Int) {
-//        playingIndex.value = index
-//    }
-//
-//    Column {
-//        gameVideos.results?.let {
-//            ListOfVideos(
-//                modifier = Modifier.weight(1f, fill = true),
-//                videos = it,
-//                playingIndex = playingIndex,
-//                onTrailerChange = { newIndex -> onTrailerChange(newIndex) }
-//            )
-//        }
-//        LazyColumn(
-//            modifier = Modifier.weight(1f, fill = true),
-//            content = {
-//                itemsIndexed(gameVideos.results) { index, trailer ->
-//                    ShowTrailers(
-//                        index = index,
-//                        trailer = trailer,
-//                        playingIndex = playingIndex,
-//                        onTrailerClicked = { newIndex -> onTrailerChange(newIndex) })
-//                }
-//            })
-//    }
-//}
-
-@OptIn(ExperimentalCoilApi::class)
+@ExperimentalMaterialApi
 @Composable
-fun ShowTrailers(
-    index: Int,
-    trailer: Video,
-    playingIndex: State<Int>,
-    onTrailerClicked: (Int) -> Unit
+private fun OnClickSimilarFilms(
+    navController: NavController, similarMoviesItems: Int
 ) {
-    val currentlyPlaying = remember {
-        mutableStateOf(false)
-    }
-    currentlyPlaying.value = index == playingIndex.value
-    ConstraintLayout(modifier = Modifier
-        .testTag("TrailerParent")
-        .padding(8.dp)
-        .wrapContentSize()
-        .clickable {
-            onTrailerClicked(index)
-        }) {
-        val (thumbnail, play, title, nowPlaying) = createRefs()
 
-        if (currentlyPlaying.value) {
-
-        }
-        Text(
-            text = trailer.name,
-            color = Color.White,
-            modifier = Modifier
-                .constrainAs(title) {
-                    top.linkTo(thumbnail.top, margin = 8.dp)
-                    start.linkTo(thumbnail.end, margin = 8.dp)
-                    end.linkTo(parent.end, margin = 8.dp)
-                    width = Dimension.preferredWrapContent
-                    height = Dimension.wrapContent
-                },
-        )
-        if (currentlyPlaying.value) {
-            Text(
-                text = "",
-                modifier = Modifier.constrainAs(nowPlaying) {
-                    top.linkTo(title.bottom, margin = 8.dp)
-                    start.linkTo(thumbnail.end, margin = 8.dp)
-                    bottom.linkTo(thumbnail.bottom, margin = 8.dp)
-                    end.linkTo(parent.end, margin = 8.dp)
-                    width = Dimension.preferredWrapContent
-                    height = Dimension.preferredWrapContent
-                }
-            )
-        }
-        TrailerDivider()
-    }
-}
-
-@Composable
-fun TrailerDivider() {
-    Divider(
-        modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .testTag("Divider"),
+    val bottomSheetCoroutineScope = rememberCoroutineScope()
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
     )
+
+    Box() {
+        OutlinedButton(
+            onClick = {
+                navController.navigate(MainDestinations.SimilarMoviesRoute.destination + "/${similarMoviesItems}")
+            },
+            border = BorderStroke(1.dp, Color.Black),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.DarkGray.copy(alpha = 0.65f)),
+//        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp)
+//                .background(color = Color.Black),
+        ) {
+            Row() {
+                Image(
+                    painterResource(id = R.drawable.down),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .size(17.dp)
+                        .padding(top = 3.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "More like this", fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
+        }
+    }
 }
+
+@ExperimentalMaterialApi
+fun onBottomSheetTapped(
+    coroutineScope: CoroutineScope,
+    bottomSheetScaffoldState: BottomSheetScaffoldState
+) {
+    coroutineScope.launch {
+        try {
+            if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
+                bottomSheetScaffoldState.bottomSheetState.expand()
+            } else {
+                bottomSheetScaffoldState.bottomSheetState.collapse()
+            }
+        } catch (e: IllegalArgumentException) {
+            Log.i("AAAA", "onBottomSheetTapped: ${e.message}")
+        }
+    }
+}
+
 
 //@ExperimentalAnimationApi
 //@Composable
@@ -501,7 +529,6 @@ fun TrailerDivider() {
 //}
 
 
-
 @ExperimentalAnimationApi
 @Composable
 private fun VideoPlayer(
@@ -514,62 +541,109 @@ private fun VideoPlayer(
     val visible = remember {
         mutableStateOf(true)
     }
-    val videoTitle = remember {
-        mutableStateOf(gameVideos[playingIndex.value].name)
-    }
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
             .build().apply {
                 this.setHandleAudioBecomingNoisy(true)
-//                this.addListener(object : Player.Listener {
-//                    override fun onEvents(player: Player, events: Player.Events) {
-//                        super.onEvents(player, events)
-//                        if (player.contentPosition >= 200) visible.value = false
-//                    }
-//
-//                    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-//                        super.onMediaItemTransition(mediaItem, reason)
-//                        onTrailerClicked(this@apply.currentPeriodIndex)
-//                        visible.value = true
-//                        videoTitle.value = mediaItem?.mediaMetadata?.displayTitle.toString()
-//                    }
-//                })
             }
     }
 
 //    gameVideos.forEach {
-    object : at.huber.youtubeExtractor.YouTubeExtractor(context) {
-        override fun onExtractionComplete(
-            ytFiles: SparseArray<at.huber.youtubeExtractor.YtFile>?,
-            videoMeta: at.huber.youtubeExtractor.VideoMeta?
-        ) {
-            val iTag = 18
 
-            if (ytFiles?.get(iTag) != null && ytFiles.get(iTag).url != null) {
+//    object : YouTubeExtractor(context) {
+//        override fun onExtractionComplete(
+//            ytFiles: SparseArray<YtFile>?,
+//            videoMeta: VideoMeta?
+//        ) {
+//            if (ytFiles != null) {
+//
+//                val iTag = 137//tag of video 1080
+//                val audioTag = 140 //tag m4a audio
+//                // 720, 1080, 480
+//                var videoUrl = ""
+//                val iTags: List<Int> = listOf(22, 137, 18)
+//                for (i in iTags) {
+//                    val ytFile = ytFiles.get(i)
+//                    if (ytFile != null) {
+//                        val downloadUrl = ytFile.url
+//                        if (downloadUrl != null && downloadUrl.isNotEmpty()) {
+//                            videoUrl = downloadUrl
+//                        }
+//                    }
+//                }
+//                if (videoUrl == "")
+//                    videoUrl = ytFiles[iTag].url
+//                val audioUrl = ytFiles[audioTag].url
+//                val audioSource: MediaSource = ProgressiveMediaSource
+//                    .Factory(DefaultHttpDataSource.Factory())
+//                    .createMediaSource(MediaItem.fromUri(audioUrl))
+//                val videoSource: MediaSource = ProgressiveMediaSource
+//                    .Factory(DefaultHttpDataSource.Factory())
+//                    .createMediaSource(MediaItem.fromUri(videoUrl))
+//                exoPlayer.setMediaSource(
+//                    MergingMediaSource(true, videoSource, audioSource), true
+//                )
+//                exoPlayer.prepare()
+//                exoPlayer.playWhenReady = true
+////                exoPlayer.seekTo(currentWindow, playbackPosition)
+//            }
+//        }
+//
+//    }.extract(MovieVideo.getYoutubeVideoPath(gameVideos[0].key))
 
-                val donwloadUrl = ytFiles.get(iTag).url
 
-                val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
-                    context,
-                    Util.getUserAgent(context, context.packageName)
-                )
+    try {
+        object : at.huber.youtubeExtractor.YouTubeExtractor(context) {
+            override fun onExtractionComplete(
+                ytFiles: SparseArray<YtFile>?,
+                videoMeta: VideoMeta?
+            ) {
+                val iTag = 18
 
-                val mediaSourcee = ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(Uri.parse(donwloadUrl))
+                if (ytFiles?.get(iTag) != null && ytFiles.get(iTag).url != null) {
 
-                exoPlayer.prepare(mediaSourcee, true, false)
-                exoPlayer.playWhenReady = true
+                    val downloadUrl = ytFiles.get(iTag).url
 
-            } else {
-                exoPlayer.stop()
-                Log.i("AAAAA", "onExtractionFailed: ")
+                    val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
+                        context, Util.getUserAgent(context, context.packageName)
+                    )
+
+                    val mediaSourcee = ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(Uri.parse(downloadUrl))
+
+                    exoPlayer.apply {
+                        prepare(mediaSourcee, true, false)
+                        playWhenReady = true
+                    }
+                } else {
+                    exoPlayer.stop()
+                    Log.i("AAA", "onExtractionFailed: ")
+                }
             }
-        }
-    }.extract(MovieVideo.getYoutubeVideoPath(gameVideos[1].key), true, true)
+        }.extract(MovieVideo.getYoutubeVideoPath(gameVideos[0].key), true, true)
 
-    Log.i("AAAAAAA", "VideoPlayer: ${MovieVideo.getYoutubeVideoPath(gameVideos[1].key)}")
-//    }
+    } catch (e: IndexOutOfBoundsException) {
+        OutlinedButton(
+            onClick = {},
+            border = BorderStroke(1.dp, Color.Black),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.DarkGray.copy(alpha = 0.65f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp)
+//                .background(color = Color.Black),
+        ) {
+            Text(
+                text = "This video is unavailable", fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+        }
+        Log.i("AAAAAA", "VideoPlayer:$e ")
+    }
+
+    Log.i("AAAAAAA", "VideoPlayer: ${MovieVideo.getYoutubeVideoPath(gameVideos[0].key)}")
 
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     DisposableEffect(lifecycleOwner) {

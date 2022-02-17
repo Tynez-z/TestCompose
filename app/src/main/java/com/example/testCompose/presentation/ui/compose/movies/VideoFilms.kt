@@ -1,6 +1,8 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.util.SparseArray
@@ -16,12 +18,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -42,9 +46,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
@@ -72,7 +78,8 @@ import testCompose.R
 @ExperimentalAnimationApi
 @Composable
 fun VideoFilms(
-    movieId: Int) {
+    movieId: Int
+) {
 
     val movieVideoTestViewModel = hiltViewModel<MovieVideoViewModel>()
     val getTestVideo = movieVideoTestViewModel.movieVideo.value
@@ -81,8 +88,24 @@ fun VideoFilms(
         movieVideoTestViewModel.getTestVideos(movieId = movieId)
     }
 
+    val playingIndex = remember {
+        mutableStateOf(0)
+    }
+
+    fun onTrailerChange(index: Int) {
+        playingIndex.value = index
+    }
+
     if (getTestVideo != null) {
-        ShowGameVideos(getTestVideo)
+        Column() {
+            ListOfVideos(
+                modifier = Modifier.weight(1f, fill = true),
+                videos = getTestVideo.results,
+                playingIndex = playingIndex,
+                onTrailerChange = { newIndex -> onTrailerChange(newIndex) }
+            )
+        }
+//        ShowGameVideos(getTestVideo)
     }
 
 }
@@ -105,17 +128,17 @@ fun ShowGameVideos(gameVideos: VideoList) {
             playingIndex = playingIndex,
             onTrailerChange = { newIndex -> onTrailerChange(newIndex) }
         )
-        LazyColumn(
-            modifier = Modifier.weight(1f, fill = true),
-            content = {
-                itemsIndexed(gameVideos.results) { index, trailer ->
-                    ShowTrailerss(
-                        index = index,
-                        trailer = trailer,
-                        playingIndex = playingIndex,
-                        onTrailerClicked = { newIndex -> onTrailerChange(newIndex) })
-                }
-            })
+//        LazyColumn(
+//            modifier = Modifier.weight(1f, fill = true),
+//            content = {
+//                itemsIndexed(gameVideos.results) { index, trailer ->
+//                    ShowTrailerss(
+//                        index = index,
+//                        trailer = trailer,
+//                        playingIndex = playingIndex,
+//                        onTrailerClicked = { newIndex -> onTrailerChange(newIndex) })
+//                }
+//            })
     }
 }
 
@@ -221,12 +244,22 @@ fun TrailerDividers() {
 
 @ExperimentalAnimationApi
 @Composable
-private fun ListOfVideos(videos: List<Video>, modifier: Modifier, playingIndex: State<Int>, onTrailerChange: (Int) -> Unit) {
-
+private fun ListOfVideos(
+    videos: List<Video>,
+    modifier: Modifier,
+    playingIndex: State<Int>,
+    onTrailerChange: (Int) -> Unit
+) {
     Box() {
         videos.forEach { item ->
-            VideoPlayerr(gameVideos = item, playingIndex = playingIndex, onTrailerChange = onTrailerChange, modifier = Modifier.height(200.dp).fillMaxWidth())
-
+            VideoPlayerr(
+                gameVideos = item,
+                playingIndex = playingIndex,
+                onTrailerChange = { newIndex -> onTrailerChange(newIndex) },
+                modifier = Modifier
+                    .height(200.dp)
+                    .fillMaxWidth()
+            )
         }
     }
 }
@@ -270,40 +303,39 @@ fun VideoPlayerr(
         }
 
 
-
     }
 
 //    gameVideos.forEach {
-        object : at.huber.youtubeExtractor.YouTubeExtractor(context) {
-            override fun onExtractionComplete(
-                ytFiles: SparseArray<at.huber.youtubeExtractor.YtFile>?,
-                videoMeta: at.huber.youtubeExtractor.VideoMeta?
-            ) {
-                val iTag = 18
+    object : at.huber.youtubeExtractor.YouTubeExtractor(context) {
+        override fun onExtractionComplete(
+            ytFiles: SparseArray<YtFile>?,
+            videoMeta: at.huber.youtubeExtractor.VideoMeta?
+        ) {
+            val iTag = 18
 
-                if (ytFiles?.get(iTag) != null && ytFiles.get(iTag).url != null) {
+            if (ytFiles?.get(iTag) != null && ytFiles.get(iTag).url != null) {
 
-                    val donwloadUrl = ytFiles.get(iTag).url
+                val donwloadUrl = ytFiles.get(iTag).url
 
-                    val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
-                        context,
-                        Util.getUserAgent(context, context.packageName)
-                    )
+                val dataSourceFactory: DataSource.Factory = DefaultDataSourceFactory(
+                    context,
+                    Util.getUserAgent(context, context.packageName)
+                )
 
-                    val mediaSourcee = ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(Uri.parse(donwloadUrl))
+                val mediaSourcee = ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(Uri.parse(donwloadUrl))
 
-                    exoPlayer.prepare(mediaSourcee, true, false)
-                    exoPlayer.playWhenReady = true
+                exoPlayer.prepare(mediaSourcee, true, false)
+                exoPlayer.playWhenReady = true
 
-                } else {
-                    exoPlayer.stop()
-                    Log.i("AAAAA", "onExtractionFailed: ")
-                }
+            } else {
+                exoPlayer.stop()
+                Log.i("AAAAA", "onExtractionFailed: ")
             }
-        }.extract(MovieVideo.getYoutubeVideoPath(gameVideos.key), true, true)
+        }
+    }.extract(MovieVideo.getYoutubeVideoPath(gameVideos.key), true, true)
 
-        Log.i("AAAAAAA", "VideoPlayer: ${MovieVideo.getYoutubeVideoPath(gameVideos.key)}")
+    Log.i("AAAAAAA", "VideoPlayer: ${MovieVideo.getYoutubeVideoPath(gameVideos.key)}")
 //    }
 
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
@@ -379,6 +411,58 @@ fun VideoPlayerr(
         ) {
             onDispose {
                 exoPlayer.release()
+            }
+        }
+    }
+}
+
+
+/**
+ * пред версия в горизонтальном recycler
+ **/
+@Composable
+private fun VideoThumbnail(trailers: List<Video>, context: Context, modifier: Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 10.dp)
+    ) {
+        Text(
+            text = "Trailers",
+            style = TextStyle(White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        )
+        LazyRow {
+            items(trailers.size) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .clickable {
+
+                            val playVideoIntent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(MovieVideo.getYoutubeVideoPath(trailers[it].key))
+                            )
+                            context.startActivity(playVideoIntent)
+
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    NetworkImage(
+                        networkUrl = MovieVideo.getYoutubeThumbnailPath(trailers[it].key),
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(90.dp)
+
+                    )
+
+                    NetworkImage(
+                        networkUrl = MovieVideo.getYoutubeVideoPath(trailers[it].key),
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(90.dp)
+                    )
+                }
             }
         }
     }

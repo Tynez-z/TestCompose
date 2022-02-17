@@ -2,8 +2,10 @@ package com.example.testCompose.presentation.ui.compose
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,17 +14,31 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.testCompose.presentation.ui.compose.movies.ArticleScreen
 import com.example.testCompose.presentation.ui.compose.movies.MoviesScreen
+import com.example.testCompose.presentation.ui.compose.movies.SimilarMoviesScreen
 import com.example.testCompose.presentation.ui.compose.savedMovies.SavedMoviesScreen
+import kotlinx.coroutines.FlowPreview
 
 sealed class MainDestinations(val destination: String) {
-    object MoviesRoute : MainDestinations("movies")
+    object MoviesRoute : MainDestinations("movies") {
+        const val MOVIE_DETAIL_PATH = "/{movieItem}"
+        const val MOVIE_ITEM = "movieItem"
+    }
+
     object SavedMoviesRoute : MainDestinations("saved_movies")
     object ArticleMoviesRoute : MainDestinations("article") {
         const val MOVIE_DETAIL_PATH = "/{movieItem}"
         const val MOVIE_ITEM = "movieItem"
     }
+
+    object SimilarMoviesRoute : MainDestinations("similar") {
+        const val SIMILAR_DETAIL = "/{movieItem}"
+        const val SIMILAR_ITEM = "movieItem"
+    }
 }
 
+@ExperimentalMaterialApi
+@FlowPreview
+@ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
@@ -52,6 +68,20 @@ fun NavGraph(
             )
             if (movieItem != null) {
                 ArticleScreen(navController, scaffoldState, movieId = movieItem, hiltViewModel())
+            }
+        }
+
+        composable(
+            MainDestinations.SimilarMoviesRoute.destination.plus(MainDestinations.SimilarMoviesRoute.SIMILAR_DETAIL),
+            arguments = listOf(navArgument(MainDestinations.SimilarMoviesRoute.SIMILAR_ITEM) {
+                type = NavType.IntType
+                nullable = false
+            })
+        ) {
+            val similarMovieItem =
+                it.arguments?.getInt(MainDestinations.SimilarMoviesRoute.SIMILAR_ITEM)
+            if (similarMovieItem != null) {
+                SimilarMoviesScreen(navController, scaffoldState, movieId = similarMovieItem)
             }
         }
     }

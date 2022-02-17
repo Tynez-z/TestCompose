@@ -8,8 +8,4 @@ data class MoviesResponse(
     val results: List<Movies>,
     val total_pages: Int,
     val total_results: Int
-) {
-    companion object {
-        internal const val DEFAULT_FIRST_PAGE = 1
-    }
-}
+)

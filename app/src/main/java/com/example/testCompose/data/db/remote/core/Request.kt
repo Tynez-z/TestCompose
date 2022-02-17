@@ -1,5 +1,6 @@
 package com.example.testCompose.data.db.remote.core
 
+import android.util.Log
 import com.example.testCompose.common.NetworkHandler
 import com.example.testCompose.domain.exception.Failure
 import com.example.testCompose.domain.type.Either
@@ -20,7 +21,9 @@ class Request @Inject constructor(private val networkHandler: NetworkHandler) {
     private fun <T> execute(call: Call<T>): Either<Failure, T> {
         return try {
             val response = call.execute()
+
             return when (response.isSuccessful) {
+
                 true -> {
                     val body = response.body()
                     if (body != null) {
@@ -29,9 +32,13 @@ class Request @Inject constructor(private val networkHandler: NetworkHandler) {
                         Either.Left(Failure.NullBody)
                     }
                 }
+
                 false -> Either.Left(Failure.ServerError)
             }
+
+
         } catch (exception: Throwable) {
+            Log.i("AAAAA", "Request exception: ${exception.message} ")
             Either.Left(Failure.ServerError)
         }
     }

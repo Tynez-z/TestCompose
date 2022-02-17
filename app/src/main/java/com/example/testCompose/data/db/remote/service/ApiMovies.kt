@@ -4,6 +4,8 @@ import androidx.annotation.IntRange
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.entity.review.Reviews
+import com.example.testCompose.domain.entity.search.SearchMovies
+import com.example.testCompose.domain.entity.similarMovies.SimilarMovies
 import com.example.testCompose.domain.entity.video.VideoList
 import retrofit2.Call
 import retrofit2.Response
@@ -18,11 +20,15 @@ interface ApiMovies {
         const val GET_MOVIE_DETAILS = "3/movie/{movie_id}"
         const val GET_MOVIE_VIDEO = "3/movie/{movie_id}/videos"
         const val GET_REVIEWS = "3/movie/{movie_id}/reviews"
+        const val GET_SIMILAR_FILMS = "3/movie/{movie_id}/similar"
+        const val GET_SEARCH_MOVIE = "3/search/movie"
 
         const val API_KEY = "api_key"
         const val PAGE = "page"
-        const val TOTAL_PAGES = "total_pages"
+        const val QUERY = "query"
         const val MAX_PAGE_SIZE = 10
+
+        const val MAX_PAGE_SIMILAR_MOVIE = 2
         const val DEFAULT_PAGE_SIZE = 1
         const val MOVIE_ID = "movie_id"
     }
@@ -30,9 +36,19 @@ interface ApiMovies {
     @GET(GET_MOVIES)
     suspend fun getMovies(
         @Query(API_KEY) apiKey: String,
-        @Query(PAGE) @IntRange(from = 1) pageNumber: Int,
-        @Query(TOTAL_PAGES) @IntRange(from = 1, to = MAX_PAGE_SIZE.toLong()) totalPages: Int = DEFAULT_PAGE_SIZE
-    ): Response<MoviesResponse>
+        @Query(PAGE) @IntRange(from = 1, to = MAX_PAGE_SIZE.toLong()) pageNumber: Int = DEFAULT_PAGE_SIZE): Response<MoviesResponse>
+
+    @GET(GET_SIMILAR_FILMS)
+    suspend fun getSimilarMovies(
+        @Path(MOVIE_ID) movie_id: Int,
+        @Query(API_KEY) apiKey: String,
+        @Query(PAGE) @IntRange(from = 1, to = MAX_PAGE_SIMILAR_MOVIE.toLong()) pageNumber: Int = DEFAULT_PAGE_SIZE): Response<SimilarMovies>
+
+    @GET(GET_SEARCH_MOVIE)
+    suspend fun getSearchMovie(
+        @Query(API_KEY) api_key: String,
+        @Query(QUERY) query: String,
+        @Query(PAGE) @IntRange(from = 1, to = MAX_PAGE_SIMILAR_MOVIE.toLong()) pageNumber: Int = DEFAULT_PAGE_SIZE): Response<SearchMovies>
 
     @GET(GET_MOVIE_DETAILS)
     fun getMovieDetails(
@@ -40,8 +56,10 @@ interface ApiMovies {
         @Query(API_KEY) api_key: String): Call<MovieDetails>
 
     @GET(GET_MOVIE_VIDEO)
-    fun getMovieVideo(@Path(MOVIE_ID) movie_id: Int, @Query(API_KEY)api_key: String) : Call<VideoList>
+    fun getMovieVideo(
+        @Path(MOVIE_ID) movie_id: Int,
+        @Query(API_KEY) api_key: String): Call<VideoList>
 
     @GET(GET_REVIEWS)
-    fun getReviews(@Path(MOVIE_ID)movie_id: Int, @Query(API_KEY)api_key: String) : Call<Reviews>
+    fun getReviews(@Path(MOVIE_ID) movie_id: Int, @Query(API_KEY) api_key: String): Call<Reviews>
 }
