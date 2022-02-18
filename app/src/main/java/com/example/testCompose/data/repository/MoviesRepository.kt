@@ -14,6 +14,7 @@ import retrofit2.Response
 interface MoviesRepository {
 
     suspend fun getMovies(pageNumber: Int): Response<MoviesResponse>
+    suspend fun getMoviesForBottomSheet(): Either<Failure, MoviesResponse>
     suspend fun getSearchMovies(pageNumber: Int, query: String): Response<SearchMovies>
     suspend fun getSimilarMovies(pageNumber: Int, movieId: Int): Response<SimilarMovies>
     fun getMovieDetails(movieId: Int): Either<Failure, MovieDetails>

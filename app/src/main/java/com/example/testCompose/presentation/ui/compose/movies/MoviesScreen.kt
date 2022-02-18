@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,9 +44,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.testCompose.common.NetworkImage
 import com.example.testCompose.common.PagingErrorMessage
 import com.example.testCompose.common.PagingLoadItem
+import com.example.testCompose.common.Resource
 import com.example.testCompose.domain.entity.Movies
-import com.example.testCompose.domain.entity.detailMovie.MovieDetails
-import com.example.testCompose.domain.entity.movies
 import com.example.testCompose.presentation.ui.compose.MainDestinations
 import com.example.testCompose.presentation.ui.compose.savedMovies.SearchMoviesResults
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
@@ -80,20 +78,25 @@ fun MoviesScreen(
 
     val viewModel = hiltViewModel<MovieDetailViewModel>()
 
+//    val getMovieForBottomSheet = moviesViewModel.movieForBottomSheet.value
+
 //    val movieId: Int = 634649
     val movieId: Int? = null
 
 
-
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiStateDetails by viewModel.uiState.collectAsState()
+
+    val uiState by moviesViewModel.uiState.collectAsState()
 
 
     LaunchedEffect(true) {
-        uiState.movieId?.let {
-            viewModel.getMovieDetails(movieId = it)
-        }
+//        uiState.movieId?.let {
+//            viewModel.getMovieDetails(movieId = it)
+//        }
+        moviesViewModel.getMoviesForBottomSheet()
+
 //        similarMoviesViewModel.setMovieId(id = movieId)
     }
 
@@ -131,19 +134,38 @@ fun MoviesScreen(
                     sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                     sheetContent = {
                         Column(Modifier.defaultMinSize(minHeight = 1.dp)) {
-                            uiState.movieDetailObject?.let {
-                                BottomSheetLayout(
-                                    selectedMovie = it,
-                                    onMovieClick = { id ->
-                                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
+                            uiState.listOfMovies.let {
+                                when (val selectionMovie = moviesViewModel.selectedMovie) {
+                                    is Resource.Success -> {
+                                        selectionMovie.data?.let { selectedMovies ->
+                                            BottomSheetLayout(
+                                                selectedMovie = selectedMovies,
+                                                onMovieClick = { id ->
+                                                    moviesViewModel.setSelectedMovie(it.find {
+                                                        it.id == id })
+                                                    navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
+                                                },
+                                            )
+                                        }
+                                        Log.i("AAAA", "Selected:${selectionMovie.data?.title} ")
+
                                     }
-                                )
+                                }
+
                             }
+//                            uiStateDetails.movieDetailObject?.let {
+//                                BottomSheetLayout(
+//                                    selectedMovie = getMovieForBottomSheet,
+//                                    onMovieClick = { id ->
+//                                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
+//                                    }
+//                                )
+//                            }
 //                            Text(text = "EXAMPLE", color = Color.Red)
                         }
                     }, content = {
                         MovieList(
-                            moviesViewModel.movies,
+                            movies = moviesViewModel.movies,
                             navController,
                             bottomSheetState = sheetState
                         )
@@ -181,7 +203,13 @@ fun MovieList(
         content = {
             items(lazyMovieItems.itemCount) { index ->
                 lazyMovieItems[index]?.let {
-                    MovieItem(movie = it, onItemClick = {
+//                    BottomSheetLayout(selectedMovie = it, onMovieClick = {
+//                        coroutineScope.launch {
+//                            bottomSheetState.show()
+//                        }
+//                    })
+
+                    MovieItem(movie = it, onItemClick = { movieId ->
 
 //                        navController.navigate("article/${it.id}")
 //                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
@@ -353,11 +381,12 @@ fun SpecificSurface(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 private fun BottomSheetLayout(
-    selectedMovie: MovieDetails,
+    selectedMovie: Movies,
     onMovieClick: (Int) -> Unit
 ) {
     SpecificSurface(
         shape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
+
         modifier = Modifier
             .wrapContentWidth()
             .height(350.dp)
@@ -488,15 +517,15 @@ private fun BottomSheetLayout(
 
 @Composable
 fun SmallMovieItem(
-    movie: MovieDetails, onMovieSelected: (Int) -> Unit,
+    movie: Movies, onMovieSelected: (Int) -> Unit,
 ) {
     Column() {
         NetworkImage(
             networkUrl = BuildConfig.BASE_POSTER_PATH + movie.poster_path,
             modifier = Modifier
                 .padding(10.dp)
-                .height(60.dp)
-                .width(40.dp)
+                .height(120.dp)
+                .width(80.dp)
                 .clickable {
                     onMovieSelected(movie.id)
                 }
@@ -629,8 +658,8 @@ fun onBottomSheet(
     }
 }
 
-@Preview("Bottom Sheet Content")
-@Composable
-fun BottomSheetPreview() {
-    BottomSheetLayout(selectedMovie = movies.last(), onMovieClick = {})
-}
+//@Preview("Bottom Sheet Content")
+//@Composable
+//fun BottomSheetPreview() {
+//    BottomSheetLayout(selectedMovie = movies.last(), onMovieClick = {})
+//}

@@ -25,6 +25,9 @@ class MoviesRemoteImpl @Inject constructor(
     override suspend fun getMovies(pageNumber: Int): Response<MoviesResponse> =
         apiMovies.getMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber)
 
+    override suspend fun getMoviesForBottomSheet(): Either<Failure,MoviesResponse> =
+        request.make(apiMovies.getMoviesForBottomSheet(apiKey = BuildConfig.API_KEY))
+
     override suspend fun getSearchMovies(pageNumber: Int, query: String): Response<SearchMovies> =
         apiMovies.getSearchMovie(api_key = BuildConfig.API_KEY, pageNumber = pageNumber, query = query)
 

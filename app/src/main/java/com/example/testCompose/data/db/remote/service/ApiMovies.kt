@@ -38,6 +38,10 @@ interface ApiMovies {
         @Query(API_KEY) apiKey: String,
         @Query(PAGE) @IntRange(from = 1, to = MAX_PAGE_SIZE.toLong()) pageNumber: Int = DEFAULT_PAGE_SIZE): Response<MoviesResponse>
 
+    @GET(GET_MOVIES)
+    fun getMoviesForBottomSheet(
+        @Query(API_KEY) apiKey: String): Call<MoviesResponse>
+
     @GET(GET_SIMILAR_FILMS)
     suspend fun getSimilarMovies(
         @Path(MOVIE_ID) movie_id: Int,

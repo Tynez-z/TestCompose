@@ -22,6 +22,8 @@ class MoviesRepositoryImpl @Inject constructor(private val moviesRemote: MoviesR
         return moviesRemote.getMovies(pageNumber)
     }
 
+    override suspend fun getMoviesForBottomSheet(): Either<Failure,MoviesResponse> = moviesRemote.getMoviesForBottomSheet()
+
     override suspend fun getSearchMovies(pageNumber: Int, query: String): Response<SearchMovies> {
         return moviesRemote.getSearchMovies(pageNumber = pageNumber, query = query)
     }
