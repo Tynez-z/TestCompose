@@ -3,15 +3,22 @@ package com.example.testCompose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.core.view.WindowCompat
 import com.example.testCompose.presentation.ui.compose.MovieApp
+import com.example.testCompose.presentation.viewModel.LanguageViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val settingsViewModel: LanguageViewModel by viewModels()
 
     @ExperimentalMaterialApi
     @ExperimentalComposeUiApi
@@ -19,9 +26,9 @@ class MainActivity : ComponentActivity() {
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            MovieApp()
+            val showSettingsDialog = remember { mutableStateOf(false) }
+            MovieApp(showSettingsDialog = showSettingsDialog)
 //            TestComposeTheme {
 //                // A surface container using the 'background' color from the theme
 //                Surface(color = MaterialTheme.colors.background) {
@@ -29,6 +36,12 @@ class MainActivity : ComponentActivity() {
 //                }
 //            }
         }
+        settingsViewModel.onSettingsChanged.observe(this) { restart() }
+    }
+
+    private fun restart() {
+        finish()
+        startActivity(intent)
     }
 }
 

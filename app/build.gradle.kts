@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
     id("com.github.ben-manes.versions")
+    id("kotlinx-serialization")
 
     kotlin("kapt")
     kotlin("plugin.serialization")
@@ -106,6 +107,8 @@ dependencies {
         implementation(exoPlayerCore)
         implementation(exoPlayerHls)
         implementation(exoPlayerUi)
+        implementation(dataStore)
+        implementation(serialization)
     }
 
     Dependencies.hilt.apply {

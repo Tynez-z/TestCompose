@@ -23,9 +23,7 @@ import javax.inject.Inject
 
 data class MoviesBottomSheetUiState(
     val listOfMovies: List<Movies> = emptyList(),
-    val idMovies: Int? = null
-)
-
+    val selectedMovies: Int? = null)
 
 @HiltViewModel
 class MoviesViewModel @Inject constructor
@@ -34,52 +32,37 @@ class MoviesViewModel @Inject constructor
     private val getMoviesForBottomSheetUseCase: GetMoviesForBottomSheetUseCase,
     private val getMoviesUseCase: GetMoviesUseCase
 ) : ViewModel() {
-
-    var selectedMovie by mutableStateOf<Resource<Movies?>>(Resource.Loading)
-
     private val _uiState = MutableStateFlow(MoviesBottomSheetUiState())
     val uiState: StateFlow<MoviesBottomSheetUiState> = _uiState.asStateFlow()
-
 
     val movies: Flow<PagingData<Movies>> = Pager(PagingConfig(10)) {
         MoviePageSource(getMoviesUseCase)
     }.flow
 
-    val movieForBottomSheet: MutableState<List<Movies>?> = mutableStateOf(null)
-
-
-    val movieBottomSheet: MutableState<Movies?> = mutableStateOf(null)
-
     var moviesList: List<Movies> = emptyList()
-    fun getMoviesForBottomSheet() {
 
-        val movies = moviesList.find {
-            it.id == uiState.value.idMovies
-        }
-
-        getMoviesForBottomSheetUseCase(None()) {
-            it.either(
-                { failure ->
-                    Log.i("AAAAA", "getMoviesForBottomSheetUseCase: FAIL")
-                },
-                { movie ->
-                    this.moviesList = movie.results
-                    _uiState.update { moviesBottomSheetUiState ->
-                        moviesBottomSheetUiState.copy(
-                            listOfMovies = movie.results
-                        )
-                    }
-
-//                    movieForBottomSheet.value = movie.results
-                }
-            )
-        }
-
-    }
-
+    var selectedMovie by mutableStateOf<Resource<Movies?>>(Resource.Loading)
 
     fun setSelectedMovie(movie: Movies?) {
         selectedMovie = Resource.Success(movie)
     }
 
+    fun getMoviesForBottomSheet() {
+        getMoviesForBottomSheetUseCase(GetMoviesForBottomSheetUseCase.Params(page = 1)) {
+//        getMoviesForBottomSheetUseCase(GetMoviesForBottomSheetUseCase.Params(page = (0..20).random())) {
+            it.either(
+                { failure ->
+                    Log.i("AAAAA", "getMoviesForBottomSheetUseCase: FAIL")
+                },
+                { movie ->
+//                    this.moviesList = movie.results
+                    _uiState.update { moviesBottomSheetUiState ->
+                        moviesBottomSheetUiState.copy(
+                            listOfMovies = movie.results
+                        )
+                    }
+                }
+            )
+        }
+    }
 }

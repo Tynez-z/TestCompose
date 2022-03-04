@@ -241,8 +241,6 @@ fun MovieItemDetail(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            TestBottomSheet()
-
             OnClickSimilarFilms(navController = navController, similarMoviesItems = similarId)
 
             Spacer(modifier = Modifier.height(60.dp))
@@ -643,7 +641,7 @@ private fun VideoPlayer(
         Log.i("AAAAAA", "VideoPlayer:$e ")
     }
 
-    Log.i("AAAAAAA", "VideoPlayer: ${MovieVideo.getYoutubeVideoPath(gameVideos[0].key)}")
+//    Log.i("AAAAAAA", "VideoPlayer: ${MovieVideo.getYoutubeVideoPath(gameVideos[0].key)}")
 
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     DisposableEffect(lifecycleOwner) {

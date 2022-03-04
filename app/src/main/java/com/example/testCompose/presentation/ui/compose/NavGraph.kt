@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -19,10 +20,7 @@ import com.example.testCompose.presentation.ui.compose.savedMovies.SavedMoviesSc
 import kotlinx.coroutines.FlowPreview
 
 sealed class MainDestinations(val destination: String) {
-    object MoviesRoute : MainDestinations("movies") {
-        const val MOVIE_DETAIL_PATH = "/{movieItem}"
-        const val MOVIE_ITEM = "movieItem"
-    }
+    object MoviesRoute : MainDestinations("movies")
 
     object SavedMoviesRoute : MainDestinations("saved_movies")
     object ArticleMoviesRoute : MainDestinations("article") {
@@ -45,11 +43,12 @@ sealed class MainDestinations(val destination: String) {
 fun NavGraph(
     navController: NavHostController,
     scaffoldState: ScaffoldState,
-    startDestinations: String = MainDestinations.MoviesRoute.destination
+    startDestinations: String = MainDestinations.MoviesRoute.destination,
+    showSettingsDialog: MutableState<Boolean>
 ) {
     NavHost(navController = navController, startDestination = startDestinations) {
         composable(MainDestinations.MoviesRoute.destination) {
-            MoviesScreen(navController, scaffoldState, hiltViewModel())
+            MoviesScreen(navController, scaffoldState, hiltViewModel(), showSettingsDialog = showSettingsDialog)
         }
 
         composable(MainDestinations.SavedMoviesRoute.destination) {
@@ -83,6 +82,12 @@ fun NavGraph(
             if (similarMovieItem != null) {
                 SimilarMoviesScreen(navController, scaffoldState, movieId = similarMovieItem)
             }
+        }
+    }
+
+    if (showSettingsDialog.value) {
+        SettingsContent {
+            showSettingsDialog.value = false
         }
     }
 }

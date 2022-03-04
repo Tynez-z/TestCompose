@@ -13,6 +13,7 @@ import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -46,12 +48,13 @@ import com.example.testCompose.common.PagingErrorMessage
 import com.example.testCompose.common.PagingLoadItem
 import com.example.testCompose.common.Resource
 import com.example.testCompose.domain.entity.Movies
+import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.presentation.ui.compose.MainDestinations
 import com.example.testCompose.presentation.ui.compose.savedMovies.SearchMoviesResults
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
+import com.example.testCompose.presentation.viewModel.MoviesBottomSheetUiState
 import com.example.testCompose.presentation.viewModel.MoviesViewModel
 import com.example.testCompose.presentation.viewModel.SearchMovieViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -66,38 +69,28 @@ import testCompose.R
 fun MoviesScreen(
     navController: NavController,
     scaffoldState: ScaffoldState,
-    moviesViewModel: MoviesViewModel = viewModel()
+    moviesViewModel: MoviesViewModel = viewModel(),
+    showSettingsDialog: MutableState<Boolean>
+
 ) {
 
     val searchViewModel = hiltViewModel<SearchMovieViewModel>()
 
-    val keyboardController = LocalSoftwareKeyboardController.current
     var query by remember {
         mutableStateOf(TextFieldValue(searchViewModel.searchQuery.value))
     }
 
-    val viewModel = hiltViewModel<MovieDetailViewModel>()
-
-//    val getMovieForBottomSheet = moviesViewModel.movieForBottomSheet.value
-
-//    val movieId: Int = 634649
-    val movieId: Int? = null
-
-
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
-
-    val uiStateDetails by viewModel.uiState.collectAsState()
 
     val uiState by moviesViewModel.uiState.collectAsState()
 
+    val movieDetailViewModel = hiltViewModel<MovieDetailViewModel>()
+    val uiStateDetail by movieDetailViewModel.uiState.collectAsState()
 
     LaunchedEffect(true) {
-//        uiState.movieId?.let {
-//            viewModel.getMovieDetails(movieId = it)
-//        }
         moviesViewModel.getMoviesForBottomSheet()
-
-//        similarMoviesViewModel.setMovieId(id = movieId)
+        uiStateDetail.movieId?.let { id ->
+            movieDetailViewModel.getMovieDetails(movieId = id) }
     }
 
     Scaffold(
@@ -111,14 +104,14 @@ fun MoviesScreen(
                     .fillMaxSize()
                     .background(Color.Black)
             ) {
-
-                com.example.testCompose.presentation.ui.compose.savedMovies.TextField(
-                    value = query,
-                    onValueChange = { value ->
-                        query = value
-                        searchViewModel.updateQuery(value.text)
-                    }, modifier = Modifier
-                )
+                    com.example.testCompose.presentation.ui.compose.savedMovies.TextField(
+                        value = query,
+                        onValueChange = { value ->
+                            query = value
+                            searchViewModel.updateQuery(value.text)
+                        }, modifier = Modifier,
+                        showSettingsDialog = showSettingsDialog
+                    )
 
                 searchViewModel.searchResults?.let {
                     SearchMoviesResults(
@@ -130,48 +123,50 @@ fun MoviesScreen(
 
                 ModalBottomSheetLayout(
                     sheetState = sheetState,
-//                     modifier = Modifier.fillMaxSize(),
                     sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                     sheetContent = {
                         Column(Modifier.defaultMinSize(minHeight = 1.dp)) {
-                            uiState.listOfMovies.let {
-                                when (val selectionMovie = moviesViewModel.selectedMovie) {
-                                    is Resource.Success -> {
-                                        selectionMovie.data?.let { selectedMovies ->
-                                            BottomSheetLayout(
-                                                selectedMovie = selectedMovies,
-                                                onMovieClick = { id ->
-                                                    moviesViewModel.setSelectedMovie(it.find {
-                                                        it.id == id })
-                                                    navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
-                                                },
-                                            )
-                                        }
-                                        Log.i("AAAA", "Selected:${selectionMovie.data?.title} ")
 
-                                    }
-                                }
-
+                            uiStateDetail.movieDetailObject?.let { it1 ->
+                                BottomSheetLayout(
+                                    selectedMovie = it1,
+                                    onMovieClick = { id->
+                                        uiStateDetail.movieDetailObject?.id = id
+                                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
+                                    },
+                                    bottomSheetState = sheetState
+                                )
                             }
-//                            uiStateDetails.movieDetailObject?.let {
-//                                BottomSheetLayout(
-//                                    selectedMovie = getMovieForBottomSheet,
-//                                    onMovieClick = { id ->
-//                                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
+
+
+//                            uiState.listOfMovies.let {
+//                                when (val selectionMovie = moviesViewModel.selectedMovie) {
+//                                    is Resource.Success -> {
+//                                        selectionMovie.data?.let { selectedMovies ->
+//                                            BottomSheetLayout(
+//                                                selectedMovie = selectedMovies,
+//                                                onMovieClick = { id ->
+//                                                    moviesViewModel.setSelectedMovie(it.find { it.id == id })
+//                                                    navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
+//                                                },
+//                                                bottomSheetState = sheetState
+//                                            )
+//                                        }
 //                                    }
-//                                )
+//                                }
 //                            }
-//                            Text(text = "EXAMPLE", color = Color.Red)
                         }
                     }, content = {
                         MovieList(
                             movies = moviesViewModel.movies,
-                            navController,
-                            bottomSheetState = sheetState
+                            bottomSheetState = sheetState,
+                            uiState = uiState,
+                            moviesViewModel = moviesViewModel,
+                            navController = navController,
+                            detailViewModel = movieDetailViewModel
                         )
                     }
                 )
-
 //                MovieList(moviesViewModel.movies, navController)
             }
         }
@@ -184,15 +179,13 @@ fun MoviesScreen(
 @Composable
 fun MovieList(
     movies: Flow<PagingData<Movies>>,
-    navController: NavController,
-    bottomSheetState: ModalBottomSheetState
+    bottomSheetState: ModalBottomSheetState,
+    detailViewModel: MovieDetailViewModel,
+    moviesViewModel: MoviesViewModel,
+    uiState: MoviesBottomSheetUiState,
+    navController: NavController
 ) {
     val lazyMovieItems = movies.collectAsLazyPagingItems()
-
-    val bottomSheetCoroutineScope = rememberCoroutineScope()
-    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
-    )
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -203,20 +196,21 @@ fun MovieList(
         content = {
             items(lazyMovieItems.itemCount) { index ->
                 lazyMovieItems[index]?.let {
-//                    BottomSheetLayout(selectedMovie = it, onMovieClick = {
-//                        coroutineScope.launch {
-//                            bottomSheetState.show()
-//                        }
-//                    })
-
                     MovieItem(movie = it, onItemClick = { movieId ->
 
-//                        navController.navigate("article/${it.id}")
-//                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
+                        detailViewModel.getMovieDetails(movieId = movieId.id)
+
+//                        moviesViewModel.setSelectedMovie(uiState.listOfMovies.find { selectedMovie ->
+//                            selectedMovie.id == movieId.id
+//
+//                        })
                         coroutineScope.launch {
                             bottomSheetState.show()
                         }
 
+                        Log.i("AAAA", "MovieList:${movieId.id} ")
+//                        navController.navigate("article/${it.id}")
+//                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
                     })
                 }
             }
@@ -287,7 +281,7 @@ fun MovieList(
 fun MovieItem(movie: Movies, onItemClick: (Movies) -> Unit) {
     Surface(
         color = Color.Transparent,
-        contentColor = MaterialTheme.colors.onBackground
+        contentColor = colors.onBackground
     ) {
         Column(
             Modifier
@@ -378,12 +372,17 @@ fun SpecificSurface(
 }
 
 
+@ExperimentalMaterialApi
 @SuppressLint("UnrememberedMutableState")
 @Composable
 private fun BottomSheetLayout(
-    selectedMovie: Movies,
-    onMovieClick: (Int) -> Unit
+    selectedMovie: MovieDetails,
+    onMovieClick: (Int) -> Unit,
+    bottomSheetState: ModalBottomSheetState,
 ) {
+
+    val coroutineScope = rememberCoroutineScope()
+
     SpecificSurface(
         shape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
 
@@ -450,7 +449,9 @@ private fun BottomSheetLayout(
                             }
                             IconButton(
                                 onClick = {
-                                    TODO()
+                                    coroutineScope.launch {
+                                        bottomSheetState.hide()
+                                    }
                                 },
                                 modifier = Modifier
                                     .clip(CircleShape)
@@ -459,7 +460,7 @@ private fun BottomSheetLayout(
                                 Icon(
                                     tint = Color.White,
                                     imageVector = Icons.Outlined.Close,
-                                    contentDescription = null,
+                                    contentDescription = null
                                 )
                             }
                         }
@@ -468,7 +469,7 @@ private fun BottomSheetLayout(
                             text = selectedMovie.overview,
                             fontSize = 14.sp,
                             color = Color.White,
-                            maxLines = 5,
+                            maxLines = 4,
                             lineHeight = 18.sp,
                             overflow = Ellipsis
                         )
@@ -517,14 +518,14 @@ private fun BottomSheetLayout(
 
 @Composable
 fun SmallMovieItem(
-    movie: Movies, onMovieSelected: (Int) -> Unit,
+    movie: MovieDetails, onMovieSelected: (Int) -> Unit,
 ) {
-    Column() {
+    Column {
         NetworkImage(
             networkUrl = BuildConfig.BASE_POSTER_PATH + movie.poster_path,
             modifier = Modifier
                 .padding(10.dp)
-                .height(120.dp)
+                .height(130.dp)
                 .width(80.dp)
                 .clickable {
                     onMovieSelected(movie.id)
@@ -630,36 +631,10 @@ fun PlayButton(
     }
 }
 
-@ExperimentalMaterialApi
-private fun closeBottomSheet(
-    bottomSheetCoroutineScope: CoroutineScope,
-    bottomSheetScaffoldState: BottomSheetScaffoldState
-) {
-    bottomSheetCoroutineScope.launch {
-        bottomSheetScaffoldState.bottomSheetState.collapse()
-    }
-}
-
-@ExperimentalMaterialApi
-fun onBottomSheet(
-    coroutineScope: CoroutineScope,
-    bottomSheetScaffoldState: BottomSheetScaffoldState
-) {
-    coroutineScope.launch {
-        try {
-            if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
-                bottomSheetScaffoldState.bottomSheetState.expand()
-            } else {
-                bottomSheetScaffoldState.bottomSheetState.collapse()
-            }
-        } catch (e: IllegalArgumentException) {
-            Log.i("AAAA", "onBottomSheetTapped: ${e.message}")
-        }
-    }
-}
-
+//@ExperimentalMaterialApi
 //@Preview("Bottom Sheet Content")
 //@Composable
 //fun BottomSheetPreview() {
-//    BottomSheetLayout(selectedMovie = movies.last(), onMovieClick = {})
+//    val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+//    BottomSheetLayout(selectedMovie = movies.last(), onMovieClick = {}, bottomSheetState = sheetState)
 //}

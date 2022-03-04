@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 data class MovieDetailUiState(
-    val movieDetailObject: MovieDetails? = null,
+    var movieDetailObject: MovieDetails? = null,
 
     val movieId: Int? = null,
 

@@ -1,6 +1,8 @@
 package com.example.testCompose.presentation.injection
 
 import android.content.Context
+import com.example.testCompose.common.LanguageDataStore
+import com.example.testCompose.common.LanguageInterceptor
 import com.example.testCompose.common.NetworkHandler
 import com.example.testCompose.data.ServiceFactory
 import com.example.testCompose.data.db.remote.core.Request
@@ -12,6 +14,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
+import okhttp3.Interceptor
 import testCompose.BuildConfig
 import javax.inject.Singleton
 
@@ -32,4 +36,11 @@ class RemoteModule {
     @Provides
     @Singleton
     fun provideNetworkHandler(@ApplicationContext context: Context) = NetworkHandler(context)
+
+    @Provides
+    @Singleton
+    @IntoSet
+    fun provideLanguageInterceptor(languageDataStore: LanguageDataStore): Interceptor {
+        return LanguageInterceptor(languageDataStore)
+    }
 }

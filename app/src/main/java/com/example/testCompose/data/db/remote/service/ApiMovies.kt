@@ -3,6 +3,8 @@ package com.example.testCompose.data.db.remote.service
 import androidx.annotation.IntRange
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.language.LanguageItem
+import com.example.testCompose.domain.entity.language.Languages
 import com.example.testCompose.domain.entity.review.Reviews
 import com.example.testCompose.domain.entity.search.SearchMovies
 import com.example.testCompose.domain.entity.similarMovies.SimilarMovies
@@ -23,6 +25,8 @@ interface ApiMovies {
         const val GET_SIMILAR_FILMS = "3/movie/{movie_id}/similar"
         const val GET_SEARCH_MOVIE = "3/search/movie"
 
+        const val GET_LANGUAGE = "3/configuration/languages"
+
         const val API_KEY = "api_key"
         const val PAGE = "page"
         const val QUERY = "query"
@@ -40,7 +44,7 @@ interface ApiMovies {
 
     @GET(GET_MOVIES)
     fun getMoviesForBottomSheet(
-        @Query(API_KEY) apiKey: String): Call<MoviesResponse>
+        @Query(API_KEY) apiKey: String, @Query(PAGE) page: Int): Call<MoviesResponse>
 
     @GET(GET_SIMILAR_FILMS)
     suspend fun getSimilarMovies(
@@ -66,4 +70,7 @@ interface ApiMovies {
 
     @GET(GET_REVIEWS)
     fun getReviews(@Path(MOVIE_ID) movie_id: Int, @Query(API_KEY) api_key: String): Call<Reviews>
+
+    @GET(GET_LANGUAGE)
+    suspend fun getLanguage(@Query(API_KEY) api_key: String): Languages
 }

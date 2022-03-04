@@ -47,4 +47,7 @@ object Versions {
 
     //exoPlayer
     const val exoPlayer = "2.16.1"
+
+    //dataStore
+    const val dataStore = "1.0.0"
 }

@@ -1,15 +1,10 @@
 package com.example.testCompose.common
 
-import android.util.Log
-import androidx.compose.runtime.internal.illegalDecoyCallException
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.testCompose.data.db.remote.service.ApiMovies
-import com.example.testCompose.data.repository.MoviesRepository
 import com.example.testCompose.domain.entity.Movies
 import com.example.testCompose.domain.interactor.useCase.GetMoviesUseCase
-import retrofit2.HttpException
-import javax.inject.Inject
 
 class MoviePageSource(
     private val getMoviesUseCase: GetMoviesUseCase,

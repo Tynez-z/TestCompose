@@ -13,6 +13,4 @@ object Dependencies {
     val hilt = Di
     val room = Room
     val retrofit = Retrofit
-
-
 }

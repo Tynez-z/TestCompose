@@ -62,4 +62,10 @@ object Other {
     const val exoPlayerCore = "com.google.android.exoplayer:exoplayer-core:${Versions.exoPlayer}"
     const val exoPlayerHls = "com.google.android.exoplayer:exoplayer-hls:${Versions.exoPlayer}"
     const val exoPlayerUi = "com.google.android.exoplayer:exoplayer-ui:${Versions.exoPlayer}"
+
+    /**
+     * [DataStore ]
+     * https://developer.android.com/topic/libraries/architecture/datastore#kts
+     */
+    const val dataStore = "androidx.datastore:datastore-preferences:${Versions.dataStore}"
 }

@@ -7,6 +7,11 @@
     <string name="info">Info</string>
     <string name="download">Download</string>
     <string name="preview">Preview</string>
+    <string name="settings">Settings</string>
     <string name="episodesAndInfo">Episodes &amp; Info</string>
+    <string name="fetch_language">fetch language</string>
+    <string name="language">language</string>
+
+
 
 </resources>

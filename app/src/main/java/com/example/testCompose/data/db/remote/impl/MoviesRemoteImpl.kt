@@ -4,9 +4,10 @@ import android.util.Log
 import com.example.testCompose.data.db.remote.core.Request
 import com.example.testCompose.data.db.remote.remote.MoviesRemote
 import com.example.testCompose.data.db.remote.service.ApiMovies
-import com.example.testCompose.data.db.remote.service.ApiMovies.Companion.API_KEY
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.language.LanguageItem
+import com.example.testCompose.domain.entity.language.Languages
 import com.example.testCompose.domain.entity.review.Reviews
 import com.example.testCompose.domain.entity.search.SearchMovies
 import com.example.testCompose.domain.entity.similarMovies.SimilarMovies
@@ -22,11 +23,16 @@ class MoviesRemoteImpl @Inject constructor(
     private val apiMovies: ApiMovies
 ) : MoviesRemote {
 
-    override suspend fun getMovies(pageNumber: Int): Response<MoviesResponse> =
-        apiMovies.getMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber)
+    override suspend fun getMovies(pageNumber: Int): Response<MoviesResponse> {
+//        Log.i("AAAA", "getMovies:${apiMovies.getMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber)} ")
+        return apiMovies.getMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber)
+    }
 
-    override suspend fun getMoviesForBottomSheet(): Either<Failure,MoviesResponse> =
-        request.make(apiMovies.getMoviesForBottomSheet(apiKey = BuildConfig.API_KEY))
+    override suspend fun getMoviesForBottomSheet(page: Int): Either<Failure, MoviesResponse> {
+//        Log.i("AAAA", "getMoviesForBottomSheet:${request.make(apiMovies.getMoviesForBottomSheet(apiKey = BuildConfig.API_KEY, page = page))} ")
+        return request.make(apiMovies.getMoviesForBottomSheet(apiKey = BuildConfig.API_KEY, page = page))
+
+    }
 
     override suspend fun getSearchMovies(pageNumber: Int, query: String): Response<SearchMovies> =
         apiMovies.getSearchMovie(api_key = BuildConfig.API_KEY, pageNumber = pageNumber, query = query)
@@ -34,14 +40,21 @@ class MoviesRemoteImpl @Inject constructor(
     override suspend fun getSimilarMovies(pageNumber: Int, movieId: Int): Response<SimilarMovies> =
         apiMovies.getSimilarMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber, movie_id = movieId)
 
-    override fun getMovieDetails(movieId: Int): Either<Failure, MovieDetails> = request.make(apiMovies.getMovieDetails(movie_id = movieId, api_key = BuildConfig.API_KEY))
+    override fun getMovieDetails(movieId: Int): Either<Failure, MovieDetails> =
+        request.make(apiMovies.getMovieDetails(movie_id = movieId, api_key = BuildConfig.API_KEY))
 
     override fun getMovieVideo(movieId: Int): Either<Failure, VideoList> {
-        Log.i("AAAAAA", "getMovieVideo:${request.make(apiMovies.getMovieVideo(movie_id = movieId, api_key = BuildConfig.API_KEY))} ")
+//        Log.i("AAAAAA", "getMovieVideo:${request.make(apiMovies.getMovieVideo(movie_id = movieId, api_key = BuildConfig.API_KEY))} ")
         return request.make(apiMovies.getMovieVideo(movie_id = movieId, api_key = BuildConfig.API_KEY))
     }
 
-    override fun getReviews(movieId: Int): Either<Failure, Reviews> = request.make(apiMovies.getReviews(movie_id = movieId, api_key = BuildConfig.API_KEY))
+    override fun getReviews(movieId: Int): Either<Failure, Reviews> =
+        request.make(apiMovies.getReviews(movie_id = movieId, api_key = BuildConfig.API_KEY))
+
+    override suspend fun getLanguage(): Languages {
+        Log.i("AAAAA", "getLanguage:${apiMovies.getLanguage(BuildConfig.API_KEY)} ")
+        return apiMovies.getLanguage(BuildConfig.API_KEY)
+    }
 
 
 //    override fun getMovies(): Either<Failure, MoviesResponse> {

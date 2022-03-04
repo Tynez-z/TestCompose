@@ -4,6 +4,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.navigation.compose.rememberNavController
@@ -14,7 +15,7 @@ import com.example.testCompose.presentation.ui.compose.components.BottomNavigati
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
-fun MovieApp() {
+fun MovieApp(showSettingsDialog: MutableState<Boolean>) {
     val navController = rememberNavController()
     val scaffoldState = rememberScaffoldState()
 
@@ -22,6 +23,6 @@ fun MovieApp() {
         BottomNavigationBar(navController)
     }
     ) {
-        NavGraph(navController = navController, scaffoldState = scaffoldState)
+        NavGraph(navController = navController, scaffoldState = scaffoldState, showSettingsDialog = showSettingsDialog)
     }
 }

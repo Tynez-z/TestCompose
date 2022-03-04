@@ -9,8 +9,11 @@ import com.example.testCompose.domain.type.None
 import javax.inject.Inject
 
 class GetMoviesForBottomSheetUseCase @Inject constructor(private val repository: MoviesRepository) :
-    UseCase<MoviesResponse, None>() {
-    override suspend fun run(params: None): Either<Failure, MoviesResponse> {
-        return repository.getMoviesForBottomSheet()
+    UseCase<MoviesResponse, GetMoviesForBottomSheetUseCase.Params>() {
+    override suspend fun run(params: Params): Either<Failure, MoviesResponse> {
+        return repository.getMoviesForBottomSheet(params.page)
     }
+
+    data class Params(val page: Int)
+
 }
