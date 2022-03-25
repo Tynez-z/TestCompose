@@ -12,6 +12,11 @@
     <string name="fetch_language">fetch language</string>
     <string name="language">language</string>
 
+    <string name="no_internet">No Internet</string>
+    <string name="check_connection">Please, check your connection</string>
+    <string name="OK">OK</string>
 
+    <string name="error_try_again">There was an error. Try again!</string>
+    <string name="try_again">Try again!</string>
 
 </resources>

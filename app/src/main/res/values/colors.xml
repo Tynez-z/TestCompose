@@ -10,8 +10,8 @@
 
     <color name="color_background">#f4f8ff</color>
 
+    <color name="tv_info_bottomsheet">#ECECEC</color>
+    <color name="background_bottomsheet">#1D1D1D</color>
 
-
-
-
+    <color name="tv_pager_info">#A9B3BC</color>
 </resources>

@@ -28,12 +28,6 @@ class MoviesRemoteImpl @Inject constructor(
         return apiMovies.getMovies(apiKey = BuildConfig.API_KEY, pageNumber = pageNumber)
     }
 
-    override suspend fun getMoviesForBottomSheet(page: Int): Either<Failure, MoviesResponse> {
-//        Log.i("AAAA", "getMoviesForBottomSheet:${request.make(apiMovies.getMoviesForBottomSheet(apiKey = BuildConfig.API_KEY, page = page))} ")
-        return request.make(apiMovies.getMoviesForBottomSheet(apiKey = BuildConfig.API_KEY, page = page))
-
-    }
-
     override suspend fun getSearchMovies(pageNumber: Int, query: String): Response<SearchMovies> =
         apiMovies.getSearchMovie(api_key = BuildConfig.API_KEY, pageNumber = pageNumber, query = query)
 
@@ -52,7 +46,7 @@ class MoviesRemoteImpl @Inject constructor(
         request.make(apiMovies.getReviews(movie_id = movieId, api_key = BuildConfig.API_KEY))
 
     override suspend fun getLanguage(): Languages {
-        Log.i("AAAAA", "getLanguage:${apiMovies.getLanguage(BuildConfig.API_KEY)} ")
+//        Log.i("AAAAA", "getLanguage:${apiMovies.getLanguage(BuildConfig.API_KEY)} ")
         return apiMovies.getLanguage(BuildConfig.API_KEY)
     }
 

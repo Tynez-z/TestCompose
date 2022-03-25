@@ -15,14 +15,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.testCompose.presentation.ui.compose.movies.ArticleScreen
 import com.example.testCompose.presentation.ui.compose.movies.MoviesScreen
+import com.example.testCompose.presentation.ui.compose.movies.SettingsContent
 import com.example.testCompose.presentation.ui.compose.movies.SimilarMoviesScreen
 import com.example.testCompose.presentation.ui.compose.savedMovies.SavedMoviesScreen
+import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.FlowPreview
 
 sealed class MainDestinations(val destination: String) {
     object MoviesRoute : MainDestinations("movies")
 
     object SavedMoviesRoute : MainDestinations("saved_movies")
+
     object ArticleMoviesRoute : MainDestinations("article") {
         const val MOVIE_DETAIL_PATH = "/{movieItem}"
         const val MOVIE_ITEM = "movieItem"
@@ -34,6 +37,7 @@ sealed class MainDestinations(val destination: String) {
     }
 }
 
+@ExperimentalPagerApi
 @ExperimentalMaterialApi
 @FlowPreview
 @ExperimentalComposeUiApi

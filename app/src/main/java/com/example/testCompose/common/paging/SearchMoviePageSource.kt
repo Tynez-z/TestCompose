@@ -1,18 +1,15 @@
-package com.example.testCompose.common
+package com.example.testCompose.common.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.testCompose.data.db.remote.service.ApiMovies
-import com.example.testCompose.domain.entity.Movies
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
-import com.example.testCompose.domain.entity.search.ResultSearchMovie
-import com.example.testCompose.domain.entity.search.SearchMovies
 import com.example.testCompose.domain.interactor.useCase.GetSearchMovieUseCase
 
 class SearchMoviePageSource(
     private val getSearchMovieUseCase: GetSearchMovieUseCase,
-    private val query: String
-) : PagingSource<Int, MovieDetails>() {
+    private val query: String) : PagingSource<Int, MovieDetails>() {
+
     override fun getRefreshKey(state: PagingState<Int, MovieDetails>): Int? {
         return state.anchorPosition?.let {
             state.closestPageToPosition(it)?.prevKey?.plus(1)

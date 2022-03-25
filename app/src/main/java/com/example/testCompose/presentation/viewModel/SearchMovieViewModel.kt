@@ -9,21 +9,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.testCompose.common.SearchMoviePageSource
-import com.example.testCompose.common.SimilarMoviesPageSource
-import com.example.testCompose.domain.entity.Movies
+import com.example.testCompose.common.EMPTY_STRING
+import com.example.testCompose.common.paging.SearchMoviePageSource
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
-import com.example.testCompose.domain.entity.search.ResultSearchMovie
-import com.example.testCompose.domain.entity.similarMovies.SimilarMoviesItems
 import com.example.testCompose.domain.interactor.useCase.GetSearchMovieUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -54,14 +48,11 @@ class SearchMovieViewModel @Inject constructor(
     }
 
     private fun search(query: String): Flow<PagingData<MovieDetails>> {
-        return Pager(
-            config = PagingConfig(2),
-            pagingSourceFactory = {
-                SearchMoviePageSource(
-                    getSearchMovieUseCase = getSearchMovieUseCase,
-                    query = query
-                )
-            }
-        ).flow
+        return Pager(config = PagingConfig(2), pagingSourceFactory = {
+            SearchMoviePageSource(
+                getSearchMovieUseCase = getSearchMovieUseCase,
+                query = query
+            )
+        }).flow
     }
 }

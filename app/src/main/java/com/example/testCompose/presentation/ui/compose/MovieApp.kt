@@ -9,7 +9,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.navigation.compose.rememberNavController
 import com.example.testCompose.presentation.ui.compose.components.BottomNavigationBar
+import com.google.accompanist.pager.ExperimentalPagerApi
+import kotlinx.coroutines.FlowPreview
 
+@FlowPreview
+@ExperimentalPagerApi
 @ExperimentalMaterialApi
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi

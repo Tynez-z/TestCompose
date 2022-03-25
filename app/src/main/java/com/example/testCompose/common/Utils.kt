@@ -1,32 +1,31 @@
 package com.example.testCompose.common
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.LayoutModifier
-import androidx.compose.ui.layout.Measurable
-import androidx.compose.ui.layout.MeasureResult
-import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
+import java.text.SimpleDateFormat
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 fun Job.stop() {
     apply {
@@ -37,21 +36,27 @@ fun Job.stop() {
 
 @Composable
 fun PagingLoadingView(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center,
-        content = { CircularProgressIndicator(color = Color.Red) })
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(
+            color = Color.Red, modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .wrapContentWidth(Alignment.CenterHorizontally)
+        )
+    }
 }
 
 @Composable
 fun PagingLoadItem() {
-    CircularProgressIndicator(
-        color = Color.Red,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .wrapContentWidth(Alignment.CenterHorizontally)
-    )
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        CircularProgressIndicator(
+            color = Color.Red,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .wrapContentWidth(Alignment.CenterHorizontally)
+        )
+    }
 }
 
 @Composable
@@ -116,6 +121,13 @@ fun Long.fromMinutesToHHmm(minutes: Long): String {
     val hour: Long = TimeUnit.HOURS.toHours(minutes) / 60
     val minute: Long = TimeUnit.MINUTES.toMinutes(minutes) % 60
     return String.format("%dh : %02dm", hour, minute)
+}
+
+@SuppressLint("SimpleDateFormat")
+fun String.convertDate(date: String): String {
+    //ISO_INSTANT
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
+    return SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(simpleDateFormat.parse(date)!!)
 }
 
 @Composable
@@ -189,3 +201,18 @@ fun LoadingItem() {
             )
     )
 }
+
+fun Modifier.applyGradient(): Modifier {
+    return drawWithCache {
+        val gradient = Brush.verticalGradient(
+            colors = listOf(Color.Transparent, Color.Black),
+            startY = size.height / 3,
+            endY = size.height
+        )
+        onDrawWithContent {
+            drawContent()
+            drawRect(gradient, blendMode = BlendMode.Multiply)
+        }
+    }
+}
+

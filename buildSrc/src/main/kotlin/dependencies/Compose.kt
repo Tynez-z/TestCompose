@@ -12,6 +12,12 @@ object Compose {
         const val ui = "androidx.compose.ui:ui:${Versions.compose}"
 
         /**
+         * [Ui Utill]
+         * https://mvnrepository.com/artifact/androidx.compose.ui/ui-util?repo=google
+         */
+        const val uiUtill = "androidx.compose.ui:ui-util:${Versions.compose}"
+
+        /**
          * [Material Design]
          * https://mvnrepository.com/artifact/androidx.compose.material/material
          * Design components library

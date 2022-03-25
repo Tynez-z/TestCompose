@@ -8,7 +8,7 @@ object Versions {
     const val compose = "1.0.5"
     const val constraint = "1.0.0-rc02"
     const val navigation = "2.4.0-beta02"
-    const val accompanist = "0.20.2"
+    const val accompanist = "0.23.1"
     const val paging = "3.1.0"
     const val pagingCompose = "1.0.0-alpha14"
     const val coilCompose = "1.4.0"

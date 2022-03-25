@@ -48,17 +48,10 @@ object Other {
     const val paging = "androidx.paging:paging-runtime:${Versions.paging}"
 
     /**
-     * [Accompanist Insets]
-     * https://github.com/google/accompanist
-     */
-    const val insets = "com.google.accompanist:accompanist-insets:${Versions.accompanist}"
-
-    /**
      * [ExoPlayer ]
      * https://github.com/google/ExoPlayer/blob/release-v2/RELEASENOTES.md
      */
     const val exoPlayer = "com.google.android.exoplayer:exoplayer:${Versions.exoPlayer}"
-
     const val exoPlayerCore = "com.google.android.exoplayer:exoplayer-core:${Versions.exoPlayer}"
     const val exoPlayerHls = "com.google.android.exoplayer:exoplayer-hls:${Versions.exoPlayer}"
     const val exoPlayerUi = "com.google.android.exoplayer:exoplayer-ui:${Versions.exoPlayer}"

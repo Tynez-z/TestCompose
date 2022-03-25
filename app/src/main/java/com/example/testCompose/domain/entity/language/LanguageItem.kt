@@ -3,7 +3,7 @@ package com.example.testCompose.domain.entity.language
 import android.annotation.SuppressLint
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.*
+import java.util.Locale
 
 @Serializable
 data class LanguageItem(

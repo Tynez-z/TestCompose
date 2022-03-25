@@ -1,17 +1,18 @@
 package com.example.testCompose.presentation.viewModel
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.testCompose.common.EMPTY_STRING
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.exception.Failure
 import com.example.testCompose.domain.interactor.useCase.GetMovieDetailsUseCase
+import com.example.testCompose.domain.interactor.useCase.cache.GetAllFavouriteMoviesUseCase
+import com.example.testCompose.domain.interactor.useCase.cache.RemoveMovieFromFavouritesUseCase
+import com.example.testCompose.domain.interactor.useCase.cache.SaveFavouriteMovieUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class MovieDetailUiState(
@@ -25,45 +26,63 @@ data class MovieDetailUiState(
 
     val isNetworkError: Boolean = false,
 
-    val dialogTitle: String = "",
-    val dialogMessage: String = ""
+    val dialogTitle: String = EMPTY_STRING,
+    val dialogMessage: String = EMPTY_STRING,
 )
-
 
 @HiltViewModel
 class MovieDetailViewModel @Inject constructor
-    (private val getMovieDetailsUseCase: GetMovieDetailsUseCase
+    (private val getMovieDetailsUseCase: GetMovieDetailsUseCase,
+    private val getAllFavouriteMoviesUseCase: GetAllFavouriteMoviesUseCase,
+    private val removeMovieFromFavouritesUseCase: RemoveMovieFromFavouritesUseCase,
+    private val saveFavouriteMovieUseCase: SaveFavouriteMovieUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MovieDetailUiState())
     val uiState: StateFlow<MovieDetailUiState> = _uiState.asStateFlow()
 
-    val movieDetail: MutableState<MovieDetails?> = mutableStateOf(null)
+    private val _favoritesFlow = MutableStateFlow(false)
+    val favoritesFlow = _favoritesFlow.asStateFlow()
 
+    fun favouriteMovie(movieId: Int) {
+        viewModelScope.launch {
+            getAllFavouriteMoviesUseCase.execute().collect { favourites ->
+                _favoritesFlow.emit(favourites.any { movieDetails ->
+                    movieDetails.id == movieId
+                })
+            }
+        }
+    }
+
+    fun toggleFavourites(movie: MovieDetails) {
+        viewModelScope.launch {
+            if (favoritesFlow.value) {
+                removeMovieFromFavouritesUseCase.execute(movie)
+            } else {
+                saveFavouriteMovieUseCase.execute(movie)
+            }
+        }
+    }
 
     fun getMovieDetails(movieId: Int) {
         changeSwipeRefreshVisibility()
         changeProgressBarVisibility()
 
-//        _uiState.update { movieDetailUiState ->
-//            movieDetailUiState.copy(isRefreshing = true) }
-
-
         getMovieDetailsUseCase(GetMovieDetailsUseCase.Params(movieId = movieId)) {
-            it.either({ failure ->
-                when (failure) {
-                    is Failure.NetworkConnectionError -> {
-                        Log.i("AAAAA", "getMovieDetails: NO NETWORK CONNECTION ")
-                        changeIsNetworkError()
+            it.either(
+                { failure ->
+                    when (failure) {
+                        is Failure.NetworkConnectionError -> {
+                            Log.i("AAAAA", "getMovieDetails: NO NETWORK CONNECTION ")
+                            changeIsNetworkError()
+                        }
                     }
-                }
-            },
+                },
                 { details ->
-//                    movieDetail.value = details
                     _uiState.update { uiState ->
                         uiState.copy(
                             movieDetailObject = details,
-                            movieId = details.id
+                            movieId = movieId
                         )
                     }
                 }
@@ -99,5 +118,4 @@ class MovieDetailViewModel @Inject constructor
             }
         }
     }
-
 }

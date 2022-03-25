@@ -1,5 +1,10 @@
 package com.example.testCompose.domain.entity.detailMovie
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
+
+@Entity(tableName = "movies")
 data class MovieDetails(
     val adult: Boolean,
     val backdrop_path: String,
@@ -7,6 +12,8 @@ data class MovieDetails(
     val budget: Int,
     val genres: List<Genre>,
     val homepage: String,
+    @PrimaryKey
+    @SerializedName("id")
     var id: Int,
     val imdb_id: String,
     val original_language: String,

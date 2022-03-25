@@ -1,4 +1,4 @@
-package com.example.testCompose.presentation.ui.compose
+package com.example.testCompose.presentation.ui.compose.movies
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -16,8 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
@@ -28,7 +26,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.testCompose.domain.entity.language.LanguageItem
 import com.example.testCompose.presentation.viewModel.LanguageViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import testCompose.R
 
 const val SETTINGS_DIALOG_TAG = "SettingsDialog"

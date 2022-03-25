@@ -1,239 +1,91 @@
 package com.example.testCompose.presentation.ui.compose.savedMovies
 
-import android.text.Layout
-import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.paging.LoadState
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.testCompose.common.*
+import com.example.testCompose.common.applyGradient
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.movies
 import com.example.testCompose.presentation.ui.compose.MainDestinations
-import com.example.testCompose.presentation.viewModel.SearchMovieViewModel
+import com.example.testCompose.presentation.ui.compose.components.BottomSheetLayout
+import com.example.testCompose.presentation.ui.compose.components.Gauge
+import com.example.testCompose.presentation.ui.compose.components.NetworkImage
+import com.example.testCompose.presentation.viewModel.SavedMoviesViewModel
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.calculateCurrentOffsetForPage
+import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
 import testCompose.BuildConfig
 import testCompose.R
+import kotlin.math.absoluteValue
 
+
+@ExperimentalPagerApi
 @ExperimentalFoundationApi
 @FlowPreview
 @ExperimentalComposeUiApi
 @Composable
 fun SavedMoviesScreen(navController: NavController, scaffoldState: ScaffoldState) {
 
-    val searchViewModel = hiltViewModel<SearchMovieViewModel>()
+    val savedMoviesViewModel = hiltViewModel<SavedMoviesViewModel>()
 
-    var query by remember {
-        mutableStateOf(TextFieldValue(searchViewModel.searchQuery.value))
-    }
+    val uiState = savedMoviesViewModel.uiState.collectAsState()
 
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    val items = uiState.value.movieList ?: emptyList()
 
-        TextField(value = query, onValueChange = { value ->
-            query = value
-            searchViewModel.updateQuery(value.text)
-        })
-
-        searchViewModel.searchResults?.let {
-            SearchMoviesResults(
-                searchTerm = query.text,
-                searchResults = it,
-                navController = navController
-            )
-        }
-    }
-}
-
-@Composable
-fun TextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-    modifier: Modifier,
-    showSettingsDialog: MutableState<Boolean>
-) {
-    Row(Modifier
-        .padding(12.dp)
-//        .padding(top = 16.dp),
-//        horizontalArrangement = Arrangement.SpaceBetween,
+    Column(
+        verticalArrangement = Arrangement.SpaceAround,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ) {
-        OutlinedTextField(
+        ListOnPlayingMovies(items, navController)
+    }
+}
+
+@ExperimentalPagerApi
+@Composable
+fun ListOnPlayingMovies(movies: List<MovieDetails>, navController: NavController) {
+    if (movies.isNotEmpty()) {
+        Row(
             modifier = Modifier
-//                .fillMaxWidth()
-                .weight(1f)
-//                .padding(16.dp)
-//            .height(65.dp)
-                .background(Color.Black),
-
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            },
-            trailingIcon = {
-                AnimatedVisibility(
-                    visible = value.text.isNotEmpty(),
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    IconButton(onClick = { onValueChange(TextFieldValue()) }) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear text",
-                            tint = Color.White
-                        )
+                .fillMaxWidth()
+//                .padding(top = 16.dp)
+        ) {
+            HorizontalPager(
+                count = movies.size,
+                contentPadding = PaddingValues(horizontal = 55.dp),
+                state = rememberPagerState(),
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
+                CardMovieOnPLaying(pageOffset = pageOffset, movie = movies[page]) { id ->
+                    movies.find { movieDetails ->
+                        movieDetails.id == id
                     }
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search,
-                keyboardType = KeyboardType.Text
-            ),
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(text = "Search movies")
-            },
-            maxLines = 1,
-            singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = Color.White,
-                disabledTextColor = Color.DarkGray,
-                placeholderColor = Color.DarkGray,
-                disabledPlaceholderColor = Color.DarkGray,
-
-                backgroundColor = Color.Black,
-                cursorColor = Color.Black,
-                errorCursorColor = Color.Red,
-                focusedIndicatorColor = Color.Green,
-                unfocusedIndicatorColor = Color.White,
-
-//            unfocusedIndicatorColor = Color(0xFFFFD040),
-                errorIndicatorColor = Color.Red
-            )
-        )
-
-        IconButton(onClick = { showSettingsDialog.value = true }) {
-            Icon(
-                Icons.Default.Settings,
-                contentDescription = stringResource(id = R.string.settings),
-                tint = Color.White,
-                modifier = Modifier.
-                align(Alignment.CenterVertically)
-            )
-        }
-    }
-
-
-
-}
-
-@ExperimentalFoundationApi
-@Composable
-fun SearchMoviesResults(
-    searchTerm: String,
-    searchResults: Flow<PagingData<MovieDetails>>,
-    navController: NavController
-) {
-    val lazyPagingItems = searchResults.collectAsLazyPagingItems()
-
-    LazyVerticalGrid(cells = GridCells.Fixed(3), modifier = Modifier
-        .fillMaxSize()
-        .padding(bottom = 60.dp)) {
-        items(lazyPagingItems.itemCount) { item ->
-            lazyPagingItems[item]?.let {
-                MovieItemSearch(searchMovie = it, onItemClick = {
-                    navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
-
-                    Log.i("AAA", "SearchMoviesResults:${it.id} ")
-                })
-            }
-        }
-
-        lazyPagingItems.apply {
-            when (loadState.refresh) {
-                is LoadState.Loading -> {
-                    item {
-                        PagingLoadingView(modifier = Modifier.fillMaxSize())
-                    }
-                }
-                is LoadState.Error -> {
-                    val state = lazyPagingItems.loadState.refresh as LoadState.Error
-                    item {
-                        PagingErrorMessage(
-                            message = state.error.localizedMessage
-                                ?: "There was an error. Try again!"
-                        )
-                    }
-                }
-                LoadState.NotLoading(true) -> {
-                    if (lazyPagingItems.itemCount == 0) {
-                        item {
-                            SearchResultEmptyMessage(searchTerm = searchTerm)
-                        }
-                    }
-                }
-            }
-
-            when (loadState.append) {
-                is LoadState.Loading -> {
-                    item {
-                        PagingLoadItem()
-                    }
-                }
-                is LoadState.Error -> {
-                    val state = lazyPagingItems.loadState.append as LoadState.Error
-                    item {
-                        PagingErrorItem(
-                            message = state.error.localizedMessage
-                                ?: "There was an error. Try again!"
-                        )
-                    }
-                }
-
-                LoadState.NotLoading(true) -> {
-                    if (lazyPagingItems.itemCount == 0) {
-                        item {
-                            SearchResultEmptyMessage(searchTerm = searchTerm)
-                        }
-                    }
+                    navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
                 }
             }
         }
@@ -241,32 +93,156 @@ fun SearchMoviesResults(
 }
 
 @Composable
-fun MovieItemSearch(searchMovie: MovieDetails, onItemClick: (MovieDetails) -> Unit) {
+fun CardMovieOnPLaying(pageOffset: Float, movie: MovieDetails, onClick: (Int) -> Unit) {
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .padding(10.dp)
+//            .padding(8.dp)
+            .graphicsLayer {
+                lerp(
+                    start = 0.85f,
+                    stop = 1f,
+                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                ).also { scale ->
+                    scaleX = scale
+                    scaleY = scale
+                }
+                alpha = lerp(
+                    start = 0.5f,
+                    stop = 1f,
+                    fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                )
+            }
             .fillMaxWidth()
-            .clickable {
-                onItemClick.invoke(searchMovie)
-            }, horizontalAlignment = Alignment.CenterHorizontally
-
     ) {
-        NetworkImage(
-            networkUrl = BuildConfig.BASE_POSTER_PATH + searchMovie.poster_path,
-            placeholder = ImageBitmap.imageResource(R.drawable.placeholdericon),
+        CardMovie(movie = movie, onClick = onClick)
+    }
+}
+
+@Composable
+fun CardMovie(movie: MovieDetails, onClick: (Int) -> Unit) {
+    Column(
+        modifier = Modifier
+    ) {
+        Card(
             modifier = Modifier
-                .height(180.dp)
-                .width(120.dp), contentScale = ContentScale.Crop
-        )
-        Text(
-            text = searchMovie.title,
-            fontSize = 16.sp,
-            color = Color.White,
-            modifier = Modifier,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.SemiBold,
-            overflow = TextOverflow.Ellipsis
+                .clickable {
+                    onClick(movie.id)
+                }
+                .height(470.dp)
+                .width(296.dp)
+                .border(BorderStroke(2.dp, Color.DarkGray), RoundedCornerShape(20.dp)),
+//                .border(2.dp, Brush.linearGradient(colors = listOf(Color.White, Color.Gray)), shape = RoundedCornerShape(20.dp)),
+
+            ) {
+            Column(
+                modifier = Modifier
+                    .background(Color.Black)
+                    .clip(RoundedCornerShape(20.dp))
+//                    .border(BorderStroke(0.dp, Color.Transparent), RoundedCornerShape(20.dp))
+            ) {
+                NetworkImage(
+                    networkUrl = BuildConfig.BASE_POSTER_PATH + movie.poster_path,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .applyGradient()
+
+                        .height(329.dp)
+//                        .align(Alignment.CenterHorizontally)
+                )
+                MovieInfoForCard(movie = movie)
+            }
+        }
+    }
+}
+
+@Composable
+fun MovieInfoForCard(movie: MovieDetails) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(end = 20.dp, bottom = 15.dp)
+        .verticalScroll(rememberScrollState())) {
+        Column(modifier = Modifier) {
+            Text(
+                text = movie.title,
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 18.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.calendar),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(start = 18.dp)
+                        .size(15.dp)
+                )
+                Text(
+                    text = movie.release_date.substring(0, 4),
+                    color = colorResource(id = R.color.tv_pager_info),
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.rate),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(start = 18.dp)
+                        .size(15.dp)
+                )
+                Text(
+                    text = movie.vote_average.toString(),
+                    color = colorResource(id = R.color.tv_pager_info),
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.voterate),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(start = 18.dp)
+                        .size(15.dp)
+                )
+                Text(
+                    text = movie.vote_count.toString(),
+                    color = colorResource(id = R.color.tv_pager_info),
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+            }
+        }
+        Gauge(
+            Modifier
+                .size(60.dp)
+                .align(Alignment.CenterEnd)
+                .clip(CircleShape),
+            value = ((movie.vote_average ?: 0.0) * 0.1).toFloat(),
+            bgColor = Color.Black,
+            strokeSize = 8f,
+            fontSize = 12.sp,
+            animated = true
         )
     }
+}
+
+@ExperimentalMaterialApi
+@Preview("MovieSavedCard")
+@Composable
+fun MovieSavedCardPreview() {
+    CardMovie(
+        movie = movies.last(),
+        onClick = {})
 }

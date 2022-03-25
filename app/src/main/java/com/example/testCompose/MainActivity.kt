@@ -13,6 +13,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.core.view.WindowCompat
 import com.example.testCompose.presentation.ui.compose.MovieApp
 import com.example.testCompose.presentation.viewModel.LanguageViewModel
+import com.google.accompanist.pager.ExperimentalPagerApi
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -20,12 +21,17 @@ class MainActivity : ComponentActivity() {
 
     private val settingsViewModel: LanguageViewModel by viewModels()
 
+    @ExperimentalPagerApi
     @ExperimentalMaterialApi
     @ExperimentalComposeUiApi
     @ExperimentalAnimationApi
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        settingsViewModel.onSettingsChanged.observe(this) {
+            restart()
+        }
+
         setContent {
             val showSettingsDialog = remember { mutableStateOf(false) }
             MovieApp(showSettingsDialog = showSettingsDialog)
@@ -36,7 +42,6 @@ class MainActivity : ComponentActivity() {
 //                }
 //            }
         }
-        settingsViewModel.onSettingsChanged.observe(this) { restart() }
     }
 
     private fun restart() {

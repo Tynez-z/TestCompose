@@ -1,4 +1,3 @@
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -72,14 +71,11 @@ android {
 }
 
 dependencies {
+    /**
+     * [YouTube extractor for ExoPlayer]
+     */
     implementation ("com.github.evgenyneu:js-evaluator-for-android:v5.0.0")
     implementation ("com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT")
-
-//    implementation ("com.github.HaarigerHarald:android-youtubeExtractor:v1.7.0")
-
-
-    implementation ("com.google.accompanist:accompanist-swiperefresh:0.22.0-rc")
-
 
     Dependencies.compose.apply {
         implementation(ui)
@@ -92,6 +88,7 @@ dependencies {
         implementation(swipeRefresh)
         implementation(pagingCompose)
         implementation(coilCompose)
+        implementation(uiUtill)
     }
 
     Dependencies.other.apply {
@@ -100,15 +97,20 @@ dependencies {
         implementation(appCompat)
         implementation(lifecycle)
         implementation(coil)
-//        implementation(coil_accompanist)
         implementation(paging)
-        implementation(insets)
         implementation(exoPlayer)
         implementation(exoPlayerCore)
         implementation(exoPlayerHls)
         implementation(exoPlayerUi)
         implementation(dataStore)
         implementation(serialization)
+    }
+
+    Dependencies.accompanist.apply {
+        implementation(insets)
+        implementation(pager)
+        implementation(pagerIndicators)
+        implementation(swiperefresh)
     }
 
     Dependencies.hilt.apply {

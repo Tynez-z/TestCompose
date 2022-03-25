@@ -3,7 +3,6 @@ package com.example.testCompose.data.db.remote.service
 import androidx.annotation.IntRange
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
-import com.example.testCompose.domain.entity.language.LanguageItem
 import com.example.testCompose.domain.entity.language.Languages
 import com.example.testCompose.domain.entity.review.Reviews
 import com.example.testCompose.domain.entity.search.SearchMovies
@@ -18,7 +17,9 @@ import retrofit2.http.Query
 interface ApiMovies {
 
     companion object {
-        const val GET_MOVIES = "/3/movie/popular"
+        //        const val GET_MOVIES = "/3/movie/popular"
+        const val GET_MOVIES = "/3/discover/movie"
+
         const val GET_MOVIE_DETAILS = "3/movie/{movie_id}"
         const val GET_MOVIE_VIDEO = "3/movie/{movie_id}/videos"
         const val GET_REVIEWS = "3/movie/{movie_id}/reviews"
@@ -41,10 +42,6 @@ interface ApiMovies {
     suspend fun getMovies(
         @Query(API_KEY) apiKey: String,
         @Query(PAGE) @IntRange(from = 1, to = MAX_PAGE_SIZE.toLong()) pageNumber: Int = DEFAULT_PAGE_SIZE): Response<MoviesResponse>
-
-    @GET(GET_MOVIES)
-    fun getMoviesForBottomSheet(
-        @Query(API_KEY) apiKey: String, @Query(PAGE) page: Int): Call<MoviesResponse>
 
     @GET(GET_SIMILAR_FILMS)
     suspend fun getSimilarMovies(

@@ -1,4 +1,4 @@
-package com.example.testCompose.common
+package com.example.testCompose.presentation.ui.compose.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

@@ -1,4 +1,4 @@
-package com.example.testCompose.common
+package com.example.testCompose.common.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState

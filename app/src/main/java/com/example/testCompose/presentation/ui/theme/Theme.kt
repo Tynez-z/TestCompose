@@ -29,11 +29,11 @@ private val LightColorPalette = lightColors(
 )
 
 @Composable
-fun TestComposeTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable() () -> Unit) {
-    val colors = if (darkTheme) {
-        DarkColorPalette
+fun TestComposeTheme(isDarkTheme: Boolean = false, content: @Composable() () -> Unit) {
+    val colors = if (isDarkTheme) {
+        DarkThemeColors
     } else {
-        LightColorPalette
+        LightThemeColors
     }
 
     MaterialTheme(
