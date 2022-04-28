@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -27,16 +28,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.testCompose.common.CircularProgressBar
 import com.example.testCompose.common.convertDate
 import com.example.testCompose.common.fromMinutesToHHmm
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.entity.review.Result
 import com.example.testCompose.domain.entity.video.Video
-import com.example.testCompose.presentation.ui.compose.MainDestinations
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
 import com.example.testCompose.presentation.ui.compose.components.VideoPlayer
+import com.example.testCompose.presentation.ui.compose.destinations.MoviesScreenDestination
+import com.example.testCompose.presentation.ui.compose.destinations.SimilarMoviesScreenDestination
 import com.example.testCompose.presentation.viewModel.MovieDetailUiState
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
 import com.example.testCompose.presentation.viewModel.MovieVideoViewModel
@@ -44,17 +45,22 @@ import com.example.testCompose.presentation.viewModel.ReviewsViewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.FlowPreview
 import testCompose.BuildConfig
 import testCompose.R
 
+@FlowPreview
+@ExperimentalComposeUiApi
+@Destination
 @SuppressLint("RememberReturnType")
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
 fun ArticleScreen(
-    navController: NavController,
-    scaffoldState: ScaffoldState,
+    destinationsNavigator: DestinationsNavigator,
     movieId: Int,
     reviewViewModel: ReviewsViewModel = hiltViewModel(),
     movieDetailViewModel: MovieDetailViewModel = hiltViewModel()
@@ -82,7 +88,7 @@ fun ArticleScreen(
                 },
                 backgroundColor = Color.Transparent.copy(alpha = 1.0f),
                 navigationIcon = {
-                    OnClickBackButton(navController = navController)
+                    OnClickBackButton(destinationsNavigator = destinationsNavigator)
                 },
                 actions = {
                     OnClickSaveMovie(
@@ -118,7 +124,7 @@ fun ArticleScreen(
                         movie = uiState.movieDetailObject,
                         movieVideo = uiStateVideo.videoList,
                         reviews = uiStateReview.reviewList,
-                        navController = navController,
+                        destinationsNavigator = destinationsNavigator,
                         similarId = movieId
                     )
                 }
@@ -144,6 +150,9 @@ fun ShowError(
     )
 }
 
+@ExperimentalComposeUiApi
+@FlowPreview
+@ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
@@ -151,7 +160,7 @@ fun MovieItemDetail(
     movie: MovieDetails?,
     movieVideo: List<Video>?,
     reviews: List<Result>?,
-    navController: NavController,
+    destinationsNavigator: DestinationsNavigator,
     similarId: Int
 ) {
     val playingIndex = remember {
@@ -197,7 +206,7 @@ fun MovieItemDetail(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                OnClickSimilarFilms(navController = navController, similarMoviesItems = similarId)
+                OnClickSimilarFilms(destinationsNavigator = destinationsNavigator, similarMoviesItems = similarId)
 
                 Spacer(modifier = Modifier.height(60.dp))
             }
@@ -409,11 +418,16 @@ fun NameOfMovie(name: String) {
     }
 }
 
+@FlowPreview
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
+@ExperimentalAnimationApi
 @Composable
-fun OnClickBackButton(navController: NavController) {
+fun OnClickBackButton(destinationsNavigator: DestinationsNavigator) {
     IconButton(onClick = {
-        navController.navigate(MainDestinations.MoviesRoute.destination) {
-            navController.popBackStack()
+        destinationsNavigator.navigate(MoviesScreenDestination) {
+            destinationsNavigator.popBackStack()
         }
     }) {
         Icon(
@@ -424,15 +438,19 @@ fun OnClickBackButton(navController: NavController) {
     }
 }
 
+@ExperimentalAnimationApi
+@ExperimentalComposeUiApi
+@FlowPreview
+@ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @Composable
 private fun OnClickSimilarFilms(
-    navController: NavController, similarMoviesItems: Int
+    destinationsNavigator: DestinationsNavigator, similarMoviesItems: Int
 ) {
     Box() {
         OutlinedButton(
             onClick = {
-                navController.navigate(MainDestinations.SimilarMoviesRoute.destination + "/${similarMoviesItems}")
+                destinationsNavigator.navigate(SimilarMoviesScreenDestination(similarMoviesItems))
             },
             border = BorderStroke(1.dp, Color.Black),
             shape = RoundedCornerShape(10.dp),

@@ -2,14 +2,16 @@ package com.example.testCompose.presentation.ui.compose
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.testCompose.presentation.ui.compose.components.BottomNavigationBar
 import com.google.accompanist.pager.ExperimentalPagerApi
+import com.ramcosta.composedestinations.DestinationsNavHost
 import kotlinx.coroutines.FlowPreview
 
 @FlowPreview
@@ -21,12 +23,15 @@ import kotlinx.coroutines.FlowPreview
 @Composable
 fun MovieApp() {
     val navController = rememberNavController()
-    val scaffoldState = rememberScaffoldState()
 
-    Scaffold(bottomBar = {
-        BottomNavigationBar(navController)
-    }
+    Scaffold(modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            BottomNavigationBar(navController = navController)
+        }
     ) {
-        NavGraph(navController = navController, scaffoldState = scaffoldState)
+        DestinationsNavHost(
+            navGraph = NavGraphs.root,
+            navController = navController
+        )
     }
 }

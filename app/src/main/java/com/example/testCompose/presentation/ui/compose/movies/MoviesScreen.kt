@@ -1,6 +1,7 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,44 +27,46 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.testCompose.common.PagingErrorMessage
 import com.example.testCompose.common.PagingLoadItem
 import com.example.testCompose.domain.entity.Movies
-import com.example.testCompose.presentation.ui.compose.MainDestinations
 import com.example.testCompose.presentation.ui.compose.components.BottomSheetLayout
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
+import com.example.testCompose.presentation.ui.compose.destinations.ArticleScreenDestination
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
 import com.example.testCompose.presentation.viewModel.MoviesViewModel
 import com.example.testCompose.presentation.viewModel.SearchMovieViewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import testCompose.BuildConfig
 import testCompose.R
 
+@ExperimentalAnimationApi
+@Destination(start = true)
 @FlowPreview
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @Composable
 fun MoviesScreen(
-    navController: NavController,
-    scaffoldState: ScaffoldState,
-    moviesViewModel: MoviesViewModel = viewModel(),
+    destinationsNavigator: DestinationsNavigator,
+    moviesViewModel: MoviesViewModel = hiltViewModel(),
 ) {
     MoviesScreen(
-        navController = navController,
-        scaffoldState = scaffoldState,
+        destinationsNavigator = destinationsNavigator,
         changeMenuState = { moviesViewModel.changeMenuState() })
 }
 
+@ExperimentalAnimationApi
 @SuppressLint("UnrememberedMutableState")
 @ExperimentalMaterialApi
 @FlowPreview
@@ -71,8 +74,7 @@ fun MoviesScreen(
 @ExperimentalFoundationApi
 @Composable
 fun MoviesScreen(
-    navController: NavController,
-    scaffoldState: ScaffoldState,
+    destinationsNavigator: DestinationsNavigator,
     moviesViewModel: MoviesViewModel = viewModel(),
     changeMenuState: () -> Unit
 ) {
@@ -148,7 +150,7 @@ fun MoviesScreen(
                 SearchMoviesResults(
                     searchTerm = query.text,
                     searchResults = searchViewModel.searchResults,
-                    navController = navController
+                    destinationsNavigator = destinationsNavigator
                 )
 
                 SwipeRefresh(
@@ -175,7 +177,7 @@ fun MoviesScreen(
                                     selectedMovie = uiStateDetail.movieDetailObject,
                                     onMovieClick = { id ->
                                         uiStateDetail.movieDetailObject?.id = id
-                                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
+                                        destinationsNavigator.navigate(ArticleScreenDestination(movieId = id))
                                     },
                                     bottomSheetState = sheetState
                                 )

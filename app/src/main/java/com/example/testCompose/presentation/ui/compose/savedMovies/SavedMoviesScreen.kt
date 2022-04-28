@@ -1,5 +1,6 @@
 package com.example.testCompose.presentation.ui.compose.savedMovies
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -11,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -23,31 +23,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.testCompose.common.applyGradient
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.entity.movies
-import com.example.testCompose.presentation.ui.compose.MainDestinations
-import com.example.testCompose.presentation.ui.compose.components.BottomSheetLayout
 import com.example.testCompose.presentation.ui.compose.components.Gauge
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
+import com.example.testCompose.presentation.ui.compose.destinations.ArticleScreenDestination
 import com.example.testCompose.presentation.viewModel.SavedMoviesViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.calculateCurrentOffsetForPage
 import com.google.accompanist.pager.rememberPagerState
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.FlowPreview
 import testCompose.BuildConfig
 import testCompose.R
 import kotlin.math.absoluteValue
 
-
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
+@Destination
 @ExperimentalPagerApi
 @ExperimentalFoundationApi
 @FlowPreview
 @ExperimentalComposeUiApi
 @Composable
-fun SavedMoviesScreen(navController: NavController, scaffoldState: ScaffoldState) {
+fun SavedMoviesScreen(destinationsNavigator: DestinationsNavigator) {
 
     val savedMoviesViewModel = hiltViewModel<SavedMoviesViewModel>()
     val uiState = savedMoviesViewModel.uiState.collectAsState()
@@ -59,13 +61,18 @@ fun SavedMoviesScreen(navController: NavController, scaffoldState: ScaffoldState
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        ListOnPlayingMovies(items, navController)
+        ListOnPlayingMovies(items, destinationsNavigator)
     }
 }
 
+@FlowPreview
+@ExperimentalFoundationApi
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
 @ExperimentalPagerApi
 @Composable
-fun ListOnPlayingMovies(movies: List<MovieDetails>, navController: NavController) {
+fun ListOnPlayingMovies(movies: List<MovieDetails>, destinationsNavigator: DestinationsNavigator) {
     if (movies.isNotEmpty()) {
         Row(
             modifier = Modifier
@@ -82,7 +89,7 @@ fun ListOnPlayingMovies(movies: List<MovieDetails>, navController: NavController
                     movies.find { movieDetails ->
                         movieDetails.id == id
                     }
-                    navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
+                    destinationsNavigator.navigate(ArticleScreenDestination(movieId = id))
                 }
             }
         }

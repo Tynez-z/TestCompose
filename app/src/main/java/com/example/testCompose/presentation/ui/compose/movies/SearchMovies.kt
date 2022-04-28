@@ -1,6 +1,7 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.*
@@ -15,43 +16,36 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.*
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.testCompose.common.*
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
-import com.example.testCompose.presentation.ui.compose.MainDestinations
 import com.example.testCompose.presentation.ui.compose.components.FilterMoviesMenu
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
-import com.google.android.material.shape.Shapeable
+import com.example.testCompose.presentation.ui.compose.destinations.ArticleScreenDestination
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import testCompose.BuildConfig
@@ -170,13 +164,17 @@ fun OnClickGenres() {
     }
 }
 
-
+@FlowPreview
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
+@Destination
 @ExperimentalFoundationApi
 @Composable
 fun SearchMoviesResults(
     searchTerm: String,
     searchResults: Flow<PagingData<MovieDetails>>?,
-    navController: NavController
+    destinationsNavigator: DestinationsNavigator
 ) {
     if (searchResults != null) {
         val lazyPagingItems = searchResults.collectAsLazyPagingItems()
@@ -187,7 +185,7 @@ fun SearchMoviesResults(
             items(lazyPagingItems.itemCount) { item ->
                 lazyPagingItems[item]?.let {
                     MovieItemSearch(searchMovie = it, onItemClick = { movie ->
-                        navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${movie.id}")
+                        destinationsNavigator.navigate(ArticleScreenDestination(movieId = movie.id))
                     })
                 }
             }
@@ -261,7 +259,9 @@ fun MovieItemSearch(searchMovie: MovieDetails, onItemClick: (MovieDetails) -> Un
         NetworkImage(
             networkUrl = BuildConfig.BASE_POSTER_PATH + searchMovie.poster_path,
             placeholder = ImageBitmap.imageResource(R.drawable.placeholdericon),
-            modifier = Modifier.clip(RoundedCornerShape(10.dp)).width(156.dp)
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .width(156.dp)
                 .height(210.dp),
             contentScale = ContentScale.Crop
         )
@@ -283,15 +283,15 @@ fun DrawRect() {
                     brush = SolidColor(Color.White),
                     strokeWidth = strokeWidth,
                     cap = StrokeCap.Square,
-                    start = Offset(x = 0*density, y = 0*density),
-                    end = Offset(x = size.width, y = 0*density)
+                    start = Offset(x = 0 * density, y = 0 * density),
+                    end = Offset(x = size.width, y = 0 * density)
                 )
 
                 drawLine(
                     brush = SolidColor(Color.White),
                     strokeWidth = strokeWidth,
                     cap = StrokeCap.Square,
-                    start = Offset.Zero.copy(y = 0*density),
+                    start = Offset.Zero.copy(y = 0 * density),
                     end = Offset.Zero.copy(y = size.height)
                 )
 
@@ -313,7 +313,9 @@ fun DrawRect() {
             }
         }
     ) {
-        Row(modifier = Modifier.padding(start = 0.dp).height(48.dp)) {
+        Row(modifier = Modifier
+            .padding(start = 0.dp)
+            .height(48.dp)) {
             Text(
                 text = "Genre",
                 fontSize = 15.sp,

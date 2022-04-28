@@ -1,5 +1,6 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,31 +9,28 @@ import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.paging.Pager
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.testCompose.domain.entity.similarMovies.SimilarMoviesItems
-import com.example.testCompose.presentation.ui.compose.MainDestinations
-import com.example.testCompose.presentation.ui.compose.components.MovieTitleText
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
+import com.example.testCompose.presentation.ui.compose.destinations.ArticleScreenDestination
 import com.example.testCompose.presentation.viewModel.MoviesViewModel
 import com.example.testCompose.presentation.viewModel.SearchMovieViewModel
 import com.example.testCompose.presentation.viewModel.SimilarMoviesUiState
@@ -40,22 +38,25 @@ import com.example.testCompose.presentation.viewModel.SimilarMoviesViewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.FlowPreview
 import testCompose.BuildConfig
 import testCompose.R
 
+@ExperimentalComposeUiApi
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
+@Destination
 @FlowPreview
 @ExperimentalFoundationApi
 @Composable
 fun SimilarMoviesScreen(
-    navController: NavController,
-    scaffoldState: ScaffoldState,
-    movieId: Int,
+    destinationsNavigator: DestinationsNavigator,
+    movieId: Int
 ) {
     val searchViewModel = hiltViewModel<SearchMovieViewModel>()
     val moviesViewModel = hiltViewModel<MoviesViewModel>()
-
-    val uiState by moviesViewModel.uiState.collectAsState()
 
     var query by remember {
         mutableStateOf(TextFieldValue(searchViewModel.searchQuery.value))
@@ -109,7 +110,7 @@ fun SimilarMoviesScreen(
         SearchMoviesResults(
             searchTerm = query.text,
             searchResults = searchViewModel.searchResults,
-            navController = navController
+            destinationsNavigator = destinationsNavigator
         )
 
         ShowSimilarMovies(
@@ -118,19 +119,23 @@ fun SimilarMoviesScreen(
             onRefresh = {
                 similarMoviesViewModel.setMovieId(movieId)
             },
-            navController = navController
+            destinationsNavigator = destinationsNavigator
         )
     }
 }
 
 
+@FlowPreview
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
 fun ShowSimilarMovies(
     similarMovies: Pager<Int, SimilarMoviesItems>?,
     uiState: SimilarMoviesUiState,
     onRefresh: () -> Unit,
-    navController: NavController
+    destinationsNavigator: DestinationsNavigator
 ) {
     if (similarMovies != null) {
         val lazySimilarMovies = similarMovies.flow.collectAsLazyPagingItems()
@@ -159,7 +164,7 @@ fun ShowSimilarMovies(
                                 contentColor = MaterialTheme.colors.onBackground
                             ) {
                                 SimilarMovieItem(movie = it, onClick = { id ->
-                                    navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${it.id}")
+                                    destinationsNavigator.navigate(ArticleScreenDestination(movieId = id))
                                 })
                             }
                         }
