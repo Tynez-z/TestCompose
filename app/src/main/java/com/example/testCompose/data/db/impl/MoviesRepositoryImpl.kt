@@ -5,6 +5,7 @@ import com.example.testCompose.data.db.remote.remote.MoviesRemote
 import com.example.testCompose.data.repository.MoviesRepository
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.genres.Genres
 import com.example.testCompose.domain.entity.language.Languages
 import com.example.testCompose.domain.entity.review.Reviews
 import com.example.testCompose.domain.entity.search.SearchMovies
@@ -51,5 +52,9 @@ class MoviesRepositoryImpl @Inject constructor(
 
     override suspend fun getLanguage(): Languages {
         return moviesRemote.getLanguage()
+    }
+
+    override  fun getGenres(): Either<Failure, Genres> {
+        return moviesRemote.getGenres()
     }
 }

@@ -19,4 +19,15 @@
     <string name="error_try_again">There was an error. Try again!</string>
     <string name="try_again">Try again!</string>
 
+    <string name="sort">sort</string>
+
+    <!-- sort by -->
+    <string name="sort_by">Sort By</string>
+    <string name="sort_by_popularity">Popularity</string>
+    <string name="sort_by_vote_count">Vote Count</string>
+    <string name="sort_by_vote_average">Vote Average</string>
+    <string name="sort_by_release_date">Release Date</string>
+    <string name="sort_by_original_title">Original Title</string>
+    <string name="sort_by_revenue">Revenue</string>
+
 </resources>

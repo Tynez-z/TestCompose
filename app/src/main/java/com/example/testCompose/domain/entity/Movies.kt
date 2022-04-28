@@ -11,6 +11,7 @@ data class Movies(
     @SerializedName("id")
     val id: Int,
     val original_language: String,
+    val genre_ids: List<Int>,
     val original_title: String,
     val overview: String,
     val popularity: Double,

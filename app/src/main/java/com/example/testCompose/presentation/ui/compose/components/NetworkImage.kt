@@ -45,7 +45,6 @@ fun NetworkImage(
                 R.drawable.nophoto
             )
         )
-
     }
 }
 

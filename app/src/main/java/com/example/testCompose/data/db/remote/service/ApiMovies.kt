@@ -3,6 +3,7 @@ package com.example.testCompose.data.db.remote.service
 import androidx.annotation.IntRange
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.genres.Genres
 import com.example.testCompose.domain.entity.language.Languages
 import com.example.testCompose.domain.entity.review.Reviews
 import com.example.testCompose.domain.entity.search.SearchMovies
@@ -25,6 +26,7 @@ interface ApiMovies {
         const val GET_REVIEWS = "3/movie/{movie_id}/reviews"
         const val GET_SIMILAR_FILMS = "3/movie/{movie_id}/similar"
         const val GET_SEARCH_MOVIE = "3/search/movie"
+        const val GET_MOVIE_GENRES = "3/genre/movie/list"
 
         const val GET_LANGUAGE = "3/configuration/languages"
 
@@ -70,4 +72,7 @@ interface ApiMovies {
 
     @GET(GET_LANGUAGE)
     suspend fun getLanguage(@Query(API_KEY) api_key: String): Languages
+
+    @GET(GET_MOVIE_GENRES)
+    fun getGenres(@Query(API_KEY) api_key: String) : Call<Genres>
 }

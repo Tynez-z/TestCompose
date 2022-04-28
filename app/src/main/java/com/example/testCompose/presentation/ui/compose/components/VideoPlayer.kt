@@ -1,5 +1,6 @@
 package com.example.testCompose.presentation.ui.compose.components
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
 import android.util.SparseArray
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.constraintlayout.compose.override
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import at.huber.youtubeExtractor.VideoMeta
@@ -35,13 +38,18 @@ import at.huber.youtubeExtractor.YtFile
 import com.example.testCompose.data.db.remote.service.MovieVideo
 import com.example.testCompose.domain.entity.video.Video
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import kotlinx.coroutines.delay
 import org.json.JSONException
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
+@SuppressLint("UnrememberedMutableState")
 @ExperimentalAnimationApi
 @Composable
 fun VideoPlayer(
@@ -61,6 +69,16 @@ fun VideoPlayer(
                 this.setHandleAudioBecomingNoisy(true)
             }
     }
+    val duration by mutableStateOf(exoPlayer.duration)
+    val bufferedPosition by mutableStateOf(exoPlayer.bufferedPosition)
+    var position by mutableStateOf(exoPlayer.currentPosition)
+
+    val currentWindow = 0
+    val playbackPosition = 0
+
+    var currentValue by remember { mutableStateOf(0f) }
+    currentValue = exoPlayer.currentPosition.toFloat()
+
 
 //    gameVideos.forEach {
 

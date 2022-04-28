@@ -33,7 +33,8 @@ class ReviewsViewModel @Inject constructor(private val reviewsUseCase: GetReview
             },
                 { review ->
                     _uiState.update { movieReviewUiState ->
-                    movieReviewUiState.copy(reviewList = review.results, movieId = movieId)
+                        movieReviewUiState.copy(reviewList = review.results.sortedByDescending { it.created_at }
+                        , movieId = movieId)
                     }
                 }
             )

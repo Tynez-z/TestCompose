@@ -1,8 +1,6 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
 import android.annotation.SuppressLint
-import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,35 +10,31 @@ import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
-import androidx.paging.Pager
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.testCompose.common.PagingErrorMessage
 import com.example.testCompose.common.PagingLoadItem
-import com.example.testCompose.common.applyGradient
 import com.example.testCompose.domain.entity.Movies
 import com.example.testCompose.presentation.ui.compose.MainDestinations
 import com.example.testCompose.presentation.ui.compose.components.BottomSheetLayout
-import com.example.testCompose.presentation.ui.compose.components.MovieTitleText
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
 import com.example.testCompose.presentation.viewModel.MoviesViewModel
@@ -48,12 +42,29 @@ import com.example.testCompose.presentation.viewModel.SearchMovieViewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.skydoves.landscapist.CircularReveal
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import testCompose.BuildConfig
 import testCompose.R
 
+@FlowPreview
+@ExperimentalFoundationApi
+@ExperimentalComposeUiApi
+@ExperimentalMaterialApi
+@Composable
+fun MoviesScreen(
+    navController: NavController,
+    scaffoldState: ScaffoldState,
+    moviesViewModel: MoviesViewModel = viewModel(),
+) {
+    MoviesScreen(
+        navController = navController,
+        scaffoldState = scaffoldState,
+        changeMenuState = { moviesViewModel.changeMenuState() })
+}
+
+@SuppressLint("UnrememberedMutableState")
 @ExperimentalMaterialApi
 @FlowPreview
 @ExperimentalComposeUiApi
@@ -63,8 +74,7 @@ fun MoviesScreen(
     navController: NavController,
     scaffoldState: ScaffoldState,
     moviesViewModel: MoviesViewModel = viewModel(),
-    showSettingsDialog: MutableState<Boolean>
-
+    changeMenuState: () -> Unit
 ) {
     val searchViewModel = hiltViewModel<SearchMovieViewModel>()
 
@@ -79,30 +89,61 @@ fun MoviesScreen(
     val movieDetailViewModel = hiltViewModel<MovieDetailViewModel>()
     val uiStateDetail by movieDetailViewModel.uiState.collectAsState()
 
+
     LaunchedEffect(true) {
         uiStateDetail.movieId?.let { id ->
             movieDetailViewModel.getMovieDetails(movieId = id)
         }
-        moviesViewModel.getMovies()
+        moviesViewModel.apply {
+            getMovies(genreId = uiState.genreId)
+            getGenres()
+        }
     }
 
     Scaffold(
-        topBar = {},
+        topBar = { },
         content = {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black)
             ) {
-                TextField(
-                    value = query,
-                    onValueChange = { value ->
-                        query = value
-                        searchViewModel.updateQuery(value.text)
-                    },
-                    modifier = Modifier,
-                    showSettingsDialog = showSettingsDialog,
-                )
+                Row(
+                    Modifier
+                        .padding(12.dp)
+                        .fillMaxWidth()
+                ) {
+                    Box {
+                        OnClickSettings(
+                            onSettingsClick = { changeMenuState() },
+                            onFilterChanged = {
+                                moviesViewModel.getMovies(it)
+                            }
+                        )//                        DrawRect()
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        Search(
+                            value = query, onValueChange = { value ->
+                                query = value
+                                searchViewModel.updateQuery(value.text)
+                            }, modifier = Modifier.padding(end = 16.dp)
+                        )
+                    }
+                    Box(modifier = Modifier.padding(start = 10.dp, top = 10.dp, end = 10.dp)) {
+//                        OnClickSettings(
+//                            onSettingsClick = { changeMenuState() },
+//                            onFilterChanged = {
+//                                moviesViewModel.getMovies(it)
+//                            }
+//                        )
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = stringResource(id = R.string.settings),
+                            tint = Color.White,
+                            modifier = Modifier
+                        )
+                    }
+                }
 
                 SearchMoviesResults(
                     searchTerm = query.text,
@@ -113,7 +154,7 @@ fun MoviesScreen(
                 SwipeRefresh(
                     state = rememberSwipeRefreshState(isRefreshing = uiState.isRefreshing),
                     onRefresh = {
-                        moviesViewModel.getMovies()
+                        moviesViewModel.getMovies(uiState.genreId)
                     },
                     indicatorAlignment = Alignment.TopCenter,
                     indicator = { state, trigger ->
@@ -129,7 +170,7 @@ fun MoviesScreen(
                         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                         sheetBackgroundColor = Color.Black.copy(alpha = 0.7f),
                         sheetContent = {
-                            Column(Modifier.defaultMinSize(minHeight = 1.dp)) {
+                            Box(Modifier.defaultMinSize(minHeight = 1.dp)) {
                                 BottomSheetLayout(
                                     selectedMovie = uiStateDetail.movieDetailObject,
                                     onMovieClick = { id ->
@@ -149,33 +190,34 @@ fun MoviesScreen(
                         }
                     )
                 }
+
             }
         }
     )
 }
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
 fun MovieList(
-    movies: Pager<Int, Movies>?,
+    movies: Flow<PagingData<Movies>>?,
     bottomSheetState: ModalBottomSheetState,
     detailViewModel: MovieDetailViewModel
 ) {
     if (movies != null) {
-        val lazyMovieItems = movies.flow.collectAsLazyPagingItems()
-
+        val lazyMovieItems = movies.collectAsLazyPagingItems()
         val coroutineScope = rememberCoroutineScope()
 
-        LazyVerticalGrid(cells = GridCells.Fixed(2), Modifier
-            .background(Color.Transparent)
-            .fillMaxSize()
-            .padding(bottom = 60.dp),
+        LazyVerticalGrid(
+            cells = GridCells.Fixed(2), Modifier
+                .background(Color.Transparent)
+                .fillMaxSize()
+                .padding(bottom = 60.dp),
             content = {
                 items(lazyMovieItems.itemCount) { index ->
-                    lazyMovieItems[index]?.let {
-                        MovieItem(movie = it, onItemClick = { movieId ->
+                    lazyMovieItems[index]?.let { movie ->
+
+                        MovieItem(movie = movie, onItemClick = { movieId ->
                             detailViewModel.getMovieDetails(movieId = movieId.id)
 
                             coroutineScope.launch {

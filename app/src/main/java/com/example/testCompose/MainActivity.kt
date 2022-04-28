@@ -1,6 +1,7 @@
 package com.example.testCompose
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -15,12 +16,14 @@ import com.example.testCompose.presentation.ui.compose.MovieApp
 import com.example.testCompose.presentation.viewModel.LanguageViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.FlowPreview
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val settingsViewModel: LanguageViewModel by viewModels()
 
+    @FlowPreview
     @ExperimentalPagerApi
     @ExperimentalMaterialApi
     @ExperimentalComposeUiApi
@@ -29,12 +32,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settingsViewModel.onSettingsChanged.observe(this) {
-            restart()
+//            restart()
         }
 
         setContent {
             val showSettingsDialog = remember { mutableStateOf(false) }
-            MovieApp(showSettingsDialog = showSettingsDialog)
+            MovieApp()
 //            TestComposeTheme {
 //                // A surface container using the 'background' color from the theme
 //                Surface(color = MaterialTheme.colors.background) {

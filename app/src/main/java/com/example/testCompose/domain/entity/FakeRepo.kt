@@ -1,6 +1,7 @@
 package com.example.testCompose.domain.entity
 
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.genres.GenreItem
 
 /**
  * Static apps data
@@ -31,3 +32,5 @@ val movies = listOf(
     genres = listOf()
   )
 )
+
+val genresFake = listOf(GenreItem(id = 1, "sdshdgs"))

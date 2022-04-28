@@ -50,9 +50,7 @@ import kotlin.math.absoluteValue
 fun SavedMoviesScreen(navController: NavController, scaffoldState: ScaffoldState) {
 
     val savedMoviesViewModel = hiltViewModel<SavedMoviesViewModel>()
-
     val uiState = savedMoviesViewModel.uiState.collectAsState()
-
     val items = uiState.value.movieList ?: emptyList()
 
     Column(
@@ -72,7 +70,6 @@ fun ListOnPlayingMovies(movies: List<MovieDetails>, navController: NavController
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-//                .padding(top = 16.dp)
         ) {
             HorizontalPager(
                 count = movies.size,
@@ -128,26 +125,21 @@ fun CardMovie(movie: MovieDetails, onClick: (Int) -> Unit) {
                 .clickable {
                     onClick(movie.id)
                 }
-                .height(470.dp)
+                .height(493.dp)
                 .width(296.dp)
                 .border(BorderStroke(2.dp, Color.DarkGray), RoundedCornerShape(20.dp)),
-//                .border(2.dp, Brush.linearGradient(colors = listOf(Color.White, Color.Gray)), shape = RoundedCornerShape(20.dp)),
-
             ) {
             Column(
                 modifier = Modifier
                     .background(Color.Black)
                     .clip(RoundedCornerShape(20.dp))
-//                    .border(BorderStroke(0.dp, Color.Transparent), RoundedCornerShape(20.dp))
             ) {
                 NetworkImage(
                     networkUrl = BuildConfig.BASE_POSTER_PATH + movie.poster_path,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .applyGradient()
-
                         .height(329.dp)
-//                        .align(Alignment.CenterHorizontally)
                 )
                 MovieInfoForCard(movie = movie)
             }

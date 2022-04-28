@@ -5,9 +5,21 @@ plugins {
     id("dagger.hilt.android.plugin")
     id("com.github.ben-manes.versions")
     id("kotlinx-serialization")
+    id("com.google.devtools.ksp") version "1.5.31-1.0.1"
 
     kotlin("kapt")
     kotlin("plugin.serialization")
+}
+
+kotlin {
+    sourceSets {
+        getByName("main") {
+            kotlin.srcDir(File("build/generated/ksp/debug/kotlin"))
+        }
+        getByName("main") {
+            kotlin.srcDir(File("build/generated/ksp/release/kotlin"))
+        }
+    }
 }
 
 android {
@@ -76,6 +88,9 @@ dependencies {
      */
     implementation ("com.github.evgenyneu:js-evaluator-for-android:v5.0.0")
     implementation ("com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT")
+
+    implementation("io.github.raamcosta.compose-destinations:core:1.5.1-beta")
+    ksp("io.github.raamcosta.compose-destinations:ksp:1.5.1-beta")
 
     Dependencies.compose.apply {
         implementation(ui)

@@ -6,6 +6,7 @@ import com.example.testCompose.data.db.remote.remote.MoviesRemote
 import com.example.testCompose.data.db.remote.service.ApiMovies
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.genres.Genres
 import com.example.testCompose.domain.entity.language.LanguageItem
 import com.example.testCompose.domain.entity.language.Languages
 import com.example.testCompose.domain.entity.review.Reviews
@@ -48,6 +49,10 @@ class MoviesRemoteImpl @Inject constructor(
     override suspend fun getLanguage(): Languages {
 //        Log.i("AAAAA", "getLanguage:${apiMovies.getLanguage(BuildConfig.API_KEY)} ")
         return apiMovies.getLanguage(BuildConfig.API_KEY)
+    }
+
+    override fun getGenres(): Either<Failure, Genres> {
+        return request.make(apiMovies.getGenres(api_key = BuildConfig.API_KEY))
     }
 
 

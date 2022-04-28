@@ -19,7 +19,7 @@ import kotlinx.coroutines.FlowPreview
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
-fun MovieApp(showSettingsDialog: MutableState<Boolean>) {
+fun MovieApp() {
     val navController = rememberNavController()
     val scaffoldState = rememberScaffoldState()
 
@@ -27,6 +27,6 @@ fun MovieApp(showSettingsDialog: MutableState<Boolean>) {
         BottomNavigationBar(navController)
     }
     ) {
-        NavGraph(navController = navController, scaffoldState = scaffoldState, showSettingsDialog = showSettingsDialog)
+        NavGraph(navController = navController, scaffoldState = scaffoldState)
     }
 }

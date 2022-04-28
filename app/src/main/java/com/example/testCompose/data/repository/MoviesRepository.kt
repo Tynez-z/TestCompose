@@ -2,6 +2,7 @@ package com.example.testCompose.data.repository
 
 import com.example.testCompose.domain.entity.MoviesResponse
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
+import com.example.testCompose.domain.entity.genres.Genres
 import com.example.testCompose.domain.entity.language.Languages
 import com.example.testCompose.domain.entity.review.Reviews
 import com.example.testCompose.domain.entity.search.SearchMovies
@@ -21,6 +22,7 @@ interface MoviesRepository {
     fun getMovieVideo(movieId: Int): Either<Failure, VideoList>
     fun getReviews(movieId: Int): Either<Failure, Reviews>
     suspend fun getLanguage(): Languages
+    fun getGenres() : Either<Failure,Genres>
 
     fun getAllFavoriteMovies(): Flow<List<MovieDetails>>
     suspend fun saveFavouriteMovie(movie: MovieDetails)

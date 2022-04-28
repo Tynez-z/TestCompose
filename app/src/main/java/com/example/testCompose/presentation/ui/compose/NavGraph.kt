@@ -15,7 +15,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.testCompose.presentation.ui.compose.movies.ArticleScreen
 import com.example.testCompose.presentation.ui.compose.movies.MoviesScreen
-import com.example.testCompose.presentation.ui.compose.movies.SettingsContent
 import com.example.testCompose.presentation.ui.compose.movies.SimilarMoviesScreen
 import com.example.testCompose.presentation.ui.compose.savedMovies.SavedMoviesScreen
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -23,14 +22,11 @@ import kotlinx.coroutines.FlowPreview
 
 sealed class MainDestinations(val destination: String) {
     object MoviesRoute : MainDestinations("movies")
-
     object SavedMoviesRoute : MainDestinations("saved_movies")
-
     object ArticleMoviesRoute : MainDestinations("article") {
         const val MOVIE_DETAIL_PATH = "/{movieItem}"
         const val MOVIE_ITEM = "movieItem"
     }
-
     object SimilarMoviesRoute : MainDestinations("similar") {
         const val SIMILAR_DETAIL = "/{movieItem}"
         const val SIMILAR_ITEM = "movieItem"
@@ -47,12 +43,11 @@ sealed class MainDestinations(val destination: String) {
 fun NavGraph(
     navController: NavHostController,
     scaffoldState: ScaffoldState,
-    startDestinations: String = MainDestinations.MoviesRoute.destination,
-    showSettingsDialog: MutableState<Boolean>
+    startDestinations: String = MainDestinations.MoviesRoute.destination
 ) {
     NavHost(navController = navController, startDestination = startDestinations) {
         composable(MainDestinations.MoviesRoute.destination) {
-            MoviesScreen(navController, scaffoldState, hiltViewModel(), showSettingsDialog = showSettingsDialog)
+            MoviesScreen(navController, scaffoldState, hiltViewModel())
         }
 
         composable(MainDestinations.SavedMoviesRoute.destination) {
@@ -89,9 +84,9 @@ fun NavGraph(
         }
     }
 
-    if (showSettingsDialog.value) {
-        SettingsContent {
-            showSettingsDialog.value = false
-        }
-    }
+//    if (showSettingsDialog.value) {
+//        GenresContent {
+//            showSettingsDialog.value = false
+//        }
+//    }
 }

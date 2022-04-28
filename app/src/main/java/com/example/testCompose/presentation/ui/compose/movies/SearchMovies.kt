@@ -1,12 +1,9 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
@@ -15,17 +12,25 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -33,6 +38,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -42,31 +49,25 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.testCompose.common.*
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.presentation.ui.compose.MainDestinations
+import com.example.testCompose.presentation.ui.compose.components.FilterMoviesMenu
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
+import com.google.android.material.shape.Shapeable
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import testCompose.BuildConfig
 import testCompose.R
 
 @Composable
-fun TextField(
+fun Search(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
-    modifier: Modifier,
-    showSettingsDialog: MutableState<Boolean>,
+    modifier: Modifier
 ) {
-    Row(
-        Modifier
-            .padding(12.dp)
-//        .padding(top = 16.dp),
-//        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
+    Row(Modifier) {
         OutlinedTextField(
             modifier = Modifier
-//                .fillMaxWidth()
-                .weight(1f)
-                .padding(end = 16.dp)
-//                .padding(16.dp)
-            .height(47.dp)
+                .fillMaxWidth()
+                .height(48.dp)
                 .background(Color.Black),
             leadingIcon = {
                 Icon(
@@ -112,18 +113,63 @@ fun TextField(
                 focusedIndicatorColor = Color.Green,
                 unfocusedIndicatorColor = Color.White,
                 errorIndicatorColor = Color.Red
+            ),
+            shape = RoundedCornerShape(
+                topStart = 0.dp,
+                topEnd = 16.dp,
+                bottomStart = 0.dp,
+                bottomEnd = 16.dp
             )
         )
-        IconButton(onClick = { showSettingsDialog.value = true }) {
-            Icon(
-                Icons.Default.Menu,
-                contentDescription = stringResource(id = R.string.settings),
-                tint = Color.White,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-        }
     }
 }
+
+@ExperimentalFoundationApi
+@FlowPreview
+@Composable
+fun OnClickSettings(onSettingsClick: () -> Unit, onFilterChanged: (Int) -> Unit) {
+    FilterMoviesMenu(
+        onFilterChanged = onFilterChanged,
+        onSettingsClick = onSettingsClick
+    )
+}
+
+@Composable
+fun OnClickGenres() {
+    Row(
+        modifier = Modifier
+            .border(
+                BorderStroke(1.dp, Color.White),
+                RoundedCornerShape(
+                    topStart = 16.dp,
+                    topEnd = 0.dp,
+                    bottomStart = 16.dp,
+                    bottomEnd = 0.dp
+                )
+            )
+            .height(48.dp)
+            .wrapContentSize()
+    ) {
+        Text(
+            text = "Genre",
+            fontSize = 14.sp,
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .padding(start = 8.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Image(
+            painterResource(id = R.drawable.downgenres),
+            contentDescription = "",
+            modifier = Modifier
+                .size(12.dp)
+                .align(Alignment.CenterVertically)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+    }
+}
+
 
 @ExperimentalFoundationApi
 @Composable
@@ -197,22 +243,7 @@ fun SearchMoviesResults(
                 }
             }
         }
-
-        Log.i("AAAA", "SearchMoviesResults: ${searchTerm}")
     }
-
-//    else {
-//        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-//            Text(
-//                text = "Type to find a film",
-//                color = Color.Gray,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp)
-//                    .wrapContentWidth(Alignment.CenterHorizontally)
-//            )
-//        }
-//    }
 }
 
 @Composable
@@ -230,18 +261,95 @@ fun MovieItemSearch(searchMovie: MovieDetails, onItemClick: (MovieDetails) -> Un
         NetworkImage(
             networkUrl = BuildConfig.BASE_POSTER_PATH + searchMovie.poster_path,
             placeholder = ImageBitmap.imageResource(R.drawable.placeholdericon),
-            modifier = Modifier
-                .height(180.dp)
-                .width(120.dp), contentScale = ContentScale.Crop
-        )
-        Text(
-            text = searchMovie.title,
-            fontSize = 16.sp,
-            color = Color.White,
-            modifier = Modifier,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.SemiBold,
-            overflow = TextOverflow.Ellipsis
+            modifier = Modifier.clip(RoundedCornerShape(10.dp)).width(156.dp)
+                .height(210.dp),
+            contentScale = ContentScale.Crop
         )
     }
+}
+
+
+@Composable
+fun DrawRect() {
+    Column(modifier = Modifier
+        .wrapContentSize()
+        .drawWithContent {
+            drawContent()
+            clipRect {
+                val strokeWidth = 6f
+                val y = size.height
+
+                drawLine(
+                    brush = SolidColor(Color.White),
+                    strokeWidth = strokeWidth,
+                    cap = StrokeCap.Square,
+                    start = Offset(x = 0*density, y = 0*density),
+                    end = Offset(x = size.width, y = 0*density)
+                )
+
+                drawLine(
+                    brush = SolidColor(Color.White),
+                    strokeWidth = strokeWidth,
+                    cap = StrokeCap.Square,
+                    start = Offset.Zero.copy(y = 0*density),
+                    end = Offset.Zero.copy(y = size.height)
+                )
+
+                drawLine(
+                    brush = SolidColor(Color.White),
+                    strokeWidth = strokeWidth,
+                    cap = StrokeCap.Square,
+                    start = Offset.Zero.copy(y = y),
+                    end = Offset(x = size.width, y = y)
+                )
+
+                drawLine(
+                    brush = SolidColor(Color.White),
+                    strokeWidth = strokeWidth,
+                    cap = StrokeCap.Square,
+                    start = Offset(x = size.width, y = y),
+                    end = Offset(x = size.width, y = y)
+                )
+            }
+        }
+    ) {
+        Row(modifier = Modifier.padding(start = 0.dp).height(48.dp)) {
+            Text(
+                text = "Genre",
+                fontSize = 15.sp,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(start = 8.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Image(
+                painterResource(id = R.drawable.downgenres),
+                contentDescription = "",
+                modifier = Modifier
+                    .size(12.dp)
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+        }
+    }
+}
+
+
+@Preview("DrawRect")
+@Composable
+fun PreviewDrawRect() {
+    DrawRect()
+}
+
+@Preview("Search")
+@Composable
+fun PreviewTextField() {
+    Search(value = TextFieldValue(), onValueChange = {}, modifier = Modifier)
+}
+
+@Preview("Select Genres")
+@Composable
+fun PreviewGenres() {
+    OnClickGenres()
 }

@@ -1,7 +1,10 @@
 package com.example.testCompose.presentation.ui.compose.components
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,7 +18,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -105,6 +107,11 @@ fun BottomSheetLayout(
                                             modifier = Modifier.padding(start = 8.dp),
                                             horizontalAlignment = Alignment.Start
                                         ) {
+                                            if (selectedMovie.release_date.isEmpty()) {
+
+                                            } else {
+
+                                            }
                                             Row(
                                                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                                                 verticalAlignment = Alignment.CenterVertically
@@ -115,7 +122,11 @@ fun BottomSheetLayout(
                                                     Modifier.size(18.dp)
                                                 )
                                                 Text(
-                                                    text = selectedMovie.release_date.substring(0, 4),
+                                                    text = if (selectedMovie.release_date.isEmpty()) {
+                                                        0.toString()
+                                                    } else {
+                                                        selectedMovie.release_date
+                                                    },
                                                     color = colorResource(id = R.color.tv_info_bottomsheet),
                                                     fontSize = 12.sp,
                                                     maxLines = 1
