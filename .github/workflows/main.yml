@@ -1,0 +1,63 @@
+# Name of workflow
+name: Android Build and Deployment Pipeline
+
+# Define on which Github event, workflow will trigger
+on: 
+  push: 
+    branches: 
+    - 'release_*'
+    
+  pull_request:
+     branches:
+     - 'release_*'
+     
+# Support for manual trigger
+  workflow_dispatch:
+    inputs:
+      app_id:
+         description: 'The application Id of the current build'
+         required: true
+      branch:
+        description: 'The branch from which we have to build'
+
+jobs:
+ build: 
+  name: Setup environment and build
+  runs-on: self-hosted
+  steps:
+  - name: Checkout the code to specific branch
+    uses: actions/checkout@v4
+    
+  - name: Set up JDK
+    uses: actions/setup-java@v6
+    with:
+      distribution: 'jetbrains'
+      java-version: '17'
+      
+  - name: Setup Android SDK
+    uses: android-actions/setup-android@v3
+    
+  - uses: actions/cache@v5
+    with:
+     path: |
+      ~/.gradle/caches
+      ~/.gradle/wrapper
+     key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+     restore-keys: |
+      ${{ runner.os }}-gradle-
+
+  - name: Make Gradle executable
+    run: chmod +x ./gradlew
+
+  - name: Run tests
+    run: ./gradlew test
+
+  - name: Generate debug APK
+    run: ./gradlew assembleDebug --stacktrace
+
+  - name: Upload debug APK
+    uses: actions/upload-artifact@v4
+    with:
+       name: debug-app
+       path: app/build/outputs/apk/debug/*.apk
+       if-no-files-found: error
