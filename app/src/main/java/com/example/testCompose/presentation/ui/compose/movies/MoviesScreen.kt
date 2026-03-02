@@ -1,18 +1,27 @@
 package com.example.testCompose.presentation.ui.compose.movies
 
 import android.annotation.SuppressLint
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -20,16 +29,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.testCompose.BuildConfig
 import com.example.testCompose.common.PagingErrorMessage
 import com.example.testCompose.common.PagingLoadItem
 import com.example.testCompose.domain.entity.Movies
@@ -39,30 +54,28 @@ import com.example.testCompose.presentation.ui.compose.components.NetworkImage
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
 import com.example.testCompose.presentation.viewModel.MoviesViewModel
 import com.example.testCompose.presentation.viewModel.SearchMovieViewModel
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import testCompose.BuildConfig
-import testCompose.R
+import com.example.testCompose.R
+import com.example.testCompose.presentation.viewModel.UiEvent
 
-@FlowPreview
-@ExperimentalFoundationApi
-@ExperimentalComposeUiApi
-@ExperimentalMaterialApi
-@Composable
-fun MoviesScreen(
-    navController: NavController,
-    scaffoldState: ScaffoldState,
-    moviesViewModel: MoviesViewModel = viewModel(),
-) {
-    MoviesScreen(
-        navController = navController,
-        scaffoldState = scaffoldState,
-        changeMenuState = { moviesViewModel.changeMenuState() })
-}
+
+//@FlowPreview
+//@ExperimentalFoundationApi
+//@ExperimentalComposeUiApi
+//@ExperimentalMaterialApi
+//@Composable
+//fun MoviesScreen(
+//    navController: NavController,
+//    scaffoldState: ScaffoldState,
+//    moviesViewModel: MoviesViewModel = viewModel(),
+//) {
+//    MoviesScreen(
+//        navController = navController,
+//        scaffoldState = scaffoldState,
+//        changeMenuState = { moviesViewModel.changeMenuState() })
+//}
 
 @SuppressLint("UnrememberedMutableState")
 @ExperimentalMaterialApi
@@ -73,9 +86,11 @@ fun MoviesScreen(
 fun MoviesScreen(
     navController: NavController,
     scaffoldState: ScaffoldState,
-    moviesViewModel: MoviesViewModel = viewModel(),
+    moviesViewModel: MoviesViewModel = hiltViewModel(),
     changeMenuState: () -> Unit
 ) {
+    val lazyMovies = moviesViewModel.moviesFlow.collectAsLazyPagingItems()
+
     val searchViewModel = hiltViewModel<SearchMovieViewModel>()
 
     val uiState by moviesViewModel.uiState.collectAsState()
@@ -89,20 +104,18 @@ fun MoviesScreen(
     val movieDetailViewModel = hiltViewModel<MovieDetailViewModel>()
     val uiStateDetail by movieDetailViewModel.uiState.collectAsState()
 
+    val listState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
+    val context = LocalContext.current
 
-    LaunchedEffect(true) {
+    LaunchedEffect(uiStateDetail.movieId) {
         uiStateDetail.movieId?.let { id ->
             movieDetailViewModel.getMovieDetails(movieId = id)
-        }
-        moviesViewModel.apply {
-            getMovies(genreId = uiState.genreId)
-            getGenres()
         }
     }
 
     Scaffold(
         topBar = { },
-        content = {
+        content = { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -117,25 +130,23 @@ fun MoviesScreen(
                         OnClickSettings(
                             onSettingsClick = { changeMenuState() },
                             onFilterChanged = {
-                                moviesViewModel.getMovies(it)
+                                moviesViewModel.applyGenreFilter(it)
+//                                moviesViewModel.loadMovies(it)
+//                                moviesViewModel.getMovies(it)
                             }
-                        )//                        DrawRect()
+                        )
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         Search(
-                            value = query, onValueChange = { value ->
+                            value = query,
+                            onValueChange = { value ->
                                 query = value
                                 searchViewModel.updateQuery(value.text)
+                                moviesViewModel.onSubmitClicked()
                             }, modifier = Modifier.padding(end = 16.dp)
                         )
                     }
                     Box(modifier = Modifier.padding(start = 10.dp, top = 10.dp, end = 10.dp)) {
-//                        OnClickSettings(
-//                            onSettingsClick = { changeMenuState() },
-//                            onFilterChanged = {
-//                                moviesViewModel.getMovies(it)
-//                            }
-//                        )
                         Icon(
                             Icons.Default.Menu,
                             contentDescription = stringResource(id = R.string.settings),
@@ -151,20 +162,28 @@ fun MoviesScreen(
                     navController = navController
                 )
 
-                SwipeRefresh(
-                    state = rememberSwipeRefreshState(isRefreshing = uiState.isRefreshing),
+                val pullToRefreshState = rememberPullToRefreshState()
+
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
                     onRefresh = {
-                        moviesViewModel.getMovies(uiState.genreId)
+//                        moviesViewModel.loadMovies(uiState.genreId)
+                        lazyMovies.refresh()
                     },
-                    indicatorAlignment = Alignment.TopCenter,
-                    indicator = { state, trigger ->
-                        SwipeRefreshIndicator(
-                            state = state,
-                            refreshTriggerDistance = trigger,
-                            scale = true,
-                            contentColor = Color.Red
+                    state = pullToRefreshState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            state = pullToRefreshState,
+                            isRefreshing = uiState.isRefreshing,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            color = Color.Red
                         )
-                    }) {
+                    }
+                ) {
+                    Log.i("MovieScreen", "BottomSheet:${sheetState.isVisible} ")
                     ModalBottomSheetLayout(
                         sheetState = sheetState,
                         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -183,14 +202,14 @@ fun MoviesScreen(
                         },
                         content = {
                             MovieList(
-                                movies = uiState.movie,
+                                lazyMovies = lazyMovies,
                                 bottomSheetState = sheetState,
-                                detailViewModel = movieDetailViewModel
+                                movieDetails = { movieDetailViewModel.getMovieDetails(it) },
+                                listState = listState
                             )
                         }
                     )
                 }
-
             }
         }
     )
@@ -200,75 +219,69 @@ fun MoviesScreen(
 @ExperimentalFoundationApi
 @Composable
 fun MovieList(
-    movies: Flow<PagingData<Movies>>?,
+    lazyMovies: LazyPagingItems<Movies>,
+    listState: LazyGridState,
     bottomSheetState: ModalBottomSheetState,
-    detailViewModel: MovieDetailViewModel
+    movieDetails:(Int) -> Unit,
 ) {
-    if (movies != null) {
-        val lazyMovieItems = movies.collectAsLazyPagingItems()
-        val coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
-        LazyVerticalGrid(
-            cells = GridCells.Fixed(2), Modifier
-                .background(Color.Transparent)
-                .fillMaxSize()
-                .padding(bottom = 60.dp),
-            content = {
-                items(lazyMovieItems.itemCount) { index ->
-                    lazyMovieItems[index]?.let { movie ->
-
-                        MovieItem(movie = movie, onItemClick = { movieId ->
-                            detailViewModel.getMovieDetails(movieId = movieId.id)
-
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        state = listState,
+        modifier = Modifier
+            .background(Color.Black)
+            .fillMaxSize(),
+        content = {
+            items(
+                count = lazyMovies.itemCount,
+                key = { index ->
+                    lazyMovies[index]?.id ?: index
+                }) { index ->
+                lazyMovies[index]?.let { movie ->
+                    MovieItem(
+                        movie = movie,
+                        onItemClick = { movieId ->
+                            movieDetails(movieId.id)
                             coroutineScope.launch {
                                 bottomSheetState.show()
                             }
-                        })
-                    }
-                }
-            })
-
-        lazyMovieItems.apply {
-            when (loadState.refresh) {
-                is LoadState.Loading -> {
-                    PagingLoadItem()
-                }
-                is LoadState.Error -> {
-                    val state = loadState.refresh as LoadState.Error
-                    PagingErrorMessage(
-                        message = state.error.localizedMessage
-                            ?: stringResource(id = R.string.error_try_again)
-                    )
-
-                }
-                LoadState.NotLoading(true) -> {
-                    if (itemCount == 0) {
-                        PagingErrorMessage(
-                            message = stringResource(id = R.string.try_again)
-                        )
-                    }
-                }
-            }
-
-            when (loadState.append) {
-                is LoadState.Loading -> {
-                    PagingLoadItem()
-                }
-                is LoadState.Error -> {
-                    val state = loadState.refresh as LoadState.Error
-                    PagingErrorMessage(
-                        message = state.error.localizedMessage
-                            ?: stringResource(id = R.string.error_try_again)
+                        }
                     )
                 }
-                LoadState.NotLoading(true) -> {
-                    if (itemCount == 0) {
-                        PagingErrorMessage(
-                            message = stringResource(id = R.string.try_again)
-                        )
-                    }
+            }
+        }
+    )
+
+    lazyMovies.apply {
+        when (loadState.refresh) {
+            is LoadState.Loading -> PagingLoadItem()
+            is LoadState.Error -> {
+                val state = loadState.refresh as LoadState.Error
+                PagingErrorMessage(
+                    message = state.error.localizedMessage
+                        ?: stringResource(id = R.string.error_try_again)
+                )
+            }
+
+            else -> {
+                if (loadState.refresh is LoadState.NotLoading && itemCount == 0) {
+                    PagingErrorMessage(message = stringResource(id = R.string.try_again))
                 }
             }
+        }
+
+        when (loadState.append) {
+            is LoadState.Loading -> PagingLoadItem()
+            is LoadState.Error -> {
+                val state = loadState.append as LoadState.Error
+                PagingErrorMessage(
+                    message = state.error.localizedMessage
+                        ?: stringResource(id = R.string.error_try_again)
+                )
+            }
+
+            else -> {}
         }
     }
 }
@@ -288,7 +301,6 @@ fun MovieItem(movie: Movies, onItemClick: (Movies) -> Unit) {
                 }, horizontalAlignment = Alignment.CenterHorizontally
         ) {
             MovieImage(movie = movie)
-//            MovieTitle(title = movie.title)
         }
     }
 }
@@ -306,4 +318,34 @@ fun MovieImage(
         contentScale = ContentScale.Crop,
         placeholder = ImageBitmap.imageResource(R.drawable.film),
     )
+}
+
+@Composable
+fun <T : Any> LazyPagingItems<T>.rememberLazyGridScrollState1(): LazyGridState {
+    // After recreation, LazyPagingItems first return 0 items, then the cached items.
+    // This behavior/issue is resetting the LazyListState scroll position.
+    // Below is a workaround. More info: https://issuetracker.google.com/issues/177245496.
+    return when (this.itemCount) {
+        // Return a different LazyListState instance.
+        0 -> remember(this) {
+            LazyGridState()
+        }
+        // Return rememberLazyListState (normal case).
+        else -> {
+            rememberLazyGridState()
+        }
+    }
+}
+
+@Composable
+fun <T : Any> LazyPagingItems<T>.rememberLazyListState2(): LazyListState {
+    // After recreation, LazyPagingItems first return 0 items, then the cached items.
+    // This behavior/issue is resetting the LazyListState scroll position.
+    // Below is a workaround. More info: <https://issuetracker.google.com/issues/177245496>.
+    return when (itemCount) {
+        // Return a different LazyListState instance.
+        0 -> remember(this) { LazyListState(0, 0) }
+        // Return rememberLazyListState (normal case).
+        else -> androidx.compose.foundation.lazy.rememberLazyListState()
+    }
 }

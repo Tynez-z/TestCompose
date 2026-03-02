@@ -10,10 +10,7 @@ import retrofit2.Response
 import javax.inject.Inject
 
 class GetMoviesUseCase @Inject constructor(private val repository: MoviesRepository) {
-//    override suspend fun run(params: Params): Either<Failure, MoviesResponse> =
-//        repository.getMovies(params.pageNumber)
 
-    //    data class Params(val pageNumber : Int)
     suspend fun execute(pageNumber: Int): Response<MoviesResponse> =
         repository.getMovies(pageNumber)
 }

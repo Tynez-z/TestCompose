@@ -2,7 +2,7 @@ package com.example.testCompose.common.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.example.testCompose.data.db.remote.service.ApiMovies
+import com.example.testCompose.data.remote.api.ApiMovies
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.interactor.useCase.GetSearchMovieUseCase
 

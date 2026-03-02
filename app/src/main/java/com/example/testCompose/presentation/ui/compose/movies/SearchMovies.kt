@@ -3,59 +3,73 @@ package com.example.testCompose.presentation.ui.compose.movies
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.*
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.testCompose.common.*
+import com.example.testCompose.BuildConfig
+import com.example.testCompose.R
+import com.example.testCompose.common.PagingErrorItem
+import com.example.testCompose.common.PagingErrorMessage
+import com.example.testCompose.common.PagingLoadItem
+import com.example.testCompose.common.PagingLoadingView
+import com.example.testCompose.common.SearchResultEmptyMessage
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.presentation.ui.compose.MainDestinations
 import com.example.testCompose.presentation.ui.compose.components.FilterMoviesMenu
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
-import com.google.android.material.shape.Shapeable
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
-import testCompose.BuildConfig
-import testCompose.R
+
 
 @Composable
 fun Search(
@@ -67,7 +81,6 @@ fun Search(
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
                 .background(Color.Black),
             leadingIcon = {
                 Icon(
@@ -98,7 +111,7 @@ fun Search(
             value = value,
             onValueChange = onValueChange,
             placeholder = {
-                Text(text = "Search...", fontSize = 14.sp)
+                Text(text = "Search...")
             },
             maxLines = 1,
             singleLine = true,
@@ -181,7 +194,7 @@ fun SearchMoviesResults(
     if (searchResults != null) {
         val lazyPagingItems = searchResults.collectAsLazyPagingItems()
 
-        LazyVerticalGrid(cells = GridCells.Fixed(3), modifier = Modifier
+        LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier
             .fillMaxSize()
             .padding(bottom = 60.dp)) {
             items(lazyPagingItems.itemCount) { item ->
@@ -215,6 +228,8 @@ fun SearchMoviesResults(
                             }
                         }
                     }
+
+                    else -> {}
                 }
 
                 when (loadState.append) {
@@ -240,6 +255,8 @@ fun SearchMoviesResults(
                             }
                         }
                     }
+
+                    else -> {}
                 }
             }
         }
@@ -272,7 +289,8 @@ fun MovieItemSearch(searchMovie: MovieDetails, onItemClick: (MovieDetails) -> Un
 @Composable
 fun DrawRect() {
     Column(modifier = Modifier
-        .wrapContentSize()
+        .height(56.dp)
+//        .wrapContentSize()
         .drawWithContent {
             drawContent()
             clipRect {
@@ -313,7 +331,7 @@ fun DrawRect() {
             }
         }
     ) {
-        Row(modifier = Modifier.padding(start = 0.dp).height(48.dp)) {
+        Row(modifier = Modifier.padding(start = 0.dp).height(56.dp)) {
             Text(
                 text = "Genre",
                 fontSize = 15.sp,

@@ -26,7 +26,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.testCompose.domain.entity.language.LanguageItem
 import com.example.testCompose.presentation.viewModel.LanguageViewModel
-import testCompose.R
+import com.example.testCompose.R
 
 const val SETTINGS_DIALOG_TAG = "SettingsDialog"
 private const val FLAG_ID = "flag"

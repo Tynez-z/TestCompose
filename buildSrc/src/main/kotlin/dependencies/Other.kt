@@ -39,22 +39,17 @@ object Other {
      * An image loading library for Android backed by Kotlin Coroutines
      * https://mvnrepository.com/artifact/io.coil-kt/coil-compose
      */
-    const val coil = "com.github.skydoves:landscapist-coil:${Versions.coil}"
 
+//    const val coil = "io.coil-kt:coil:${Versions.coil}"
     /**
      * [Paging ]
      * https://developer.android.com/jetpack/androidx/releases/paging
      */
     const val paging = "androidx.paging:paging-runtime:${Versions.paging}"
 
-    /**
-     * [ExoPlayer ]
-     * https://github.com/google/ExoPlayer/blob/release-v2/RELEASENOTES.md
-     */
-    const val exoPlayer = "com.google.android.exoplayer:exoplayer:${Versions.exoPlayer}"
-    const val exoPlayerCore = "com.google.android.exoplayer:exoplayer-core:${Versions.exoPlayer}"
-    const val exoPlayerHls = "com.google.android.exoplayer:exoplayer-hls:${Versions.exoPlayer}"
-    const val exoPlayerUi = "com.google.android.exoplayer:exoplayer-ui:${Versions.exoPlayer}"
+    const val media3ExoPlayer = "androidx.media3:media3-exoplayer:${Versions.media3}"
+    const val media3Hls = "androidx.media3:media3-exoplayer-hls:${Versions.media3}"
+    const val media3Ui = "androidx.media3:media3-ui:${Versions.media3}"
 
     /**
      * [DataStore ]

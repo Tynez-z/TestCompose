@@ -1,53 +1,46 @@
 object Versions {
 
-    //jetpack
-    const val ktxCore = "1.6.0"
-    const val lifecycle = "2.4.0"
+    const val composeCompiler = "1.5.4"
+    const val ktxCore = "1.15.0"
 
-    //compose
-    const val compose = "1.0.5"
-    const val constraint = "1.0.0-rc02"
-    const val navigation = "2.4.0-beta02"
-    const val accompanist = "0.23.1"
-    const val paging = "3.1.0"
-    const val pagingCompose = "1.0.0-alpha14"
-    const val coilCompose = "1.4.0"
+    // Jetpack Core
+    const val lifecycle = "2.8.7"
+    const val appCompat = "1.7.0"
+    const val material = "1.12.0"
 
-    //di
-    const val hilt = "1.0.0"
-    const val hiltCore = "2.38.1"
-    const val hiltComposeNavigation = "1.0.0-beta01"
+    // Compose - Using BOM, compiler is now a Kotlin plugin
+    const val composeBom = "2024.12.01"
 
-    //room
-    const val room = "2.3.0"
+    const val constraint = "1.1.0"
+    const val navigation = "2.8.5"
 
-    //coil
-    const val coil = "1.4.3"
+    // Accompanist (most features now in standard Compose)
+    const val accompanist = "0.36.0"
 
-    //retrofit
-    const val retrofit = "2.9.0"
-    const val interceptor = "4.9.3"
-    const val gson = "2.8.9"
+    const val paging = "3.3.5"
+    const val pagingCompose = "3.3.5"
 
-    //serialization
-    const val serialization = "1.3.1"
+    // DI - Hilt
+    const val hilt = "2.57.1"
+    const val hiltComposeNavigation = "1.2.0"
 
-    //appcompat
-    const val appCompat = "1.4.0"
+    // Storage
+    const val room = "2.7.0"
+    const val pagination = "3.3.6"
+    const val dataStore = "1.1.2"
 
-    //reflection
-    const val reflection = "1.5.30"
+    // Network / Image
+    const val coil = "3.3.0"
+    const val retrofit = "2.11.0"
+    const val okhttp = "4.12.0"
+    const val gson = "2.11.0"
+    const val serialization = "1.8.0"
 
-    //android
-    const val material = "1.4.0"
+    // Media - Migrated to Media3
+    const val media3 = "1.5.1"
 
-    //test
-    const val androidTestExtJUnit = "1.1.3"
-    const val espressoTest = "3.4.0"
-
-    //exoPlayer
-    const val exoPlayer = "2.16.1"
-
-    //dataStore
-    const val dataStore = "1.0.0"
+    // Test
+    const val junit = "4.13.2"
+    const val androidTestExtJUnit = "1.2.1"
+    const val espressoTest = "3.6.1"
 }

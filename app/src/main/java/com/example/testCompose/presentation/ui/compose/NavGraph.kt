@@ -5,7 +5,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -13,11 +12,11 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.testCompose.presentation.ui.compose.actors.ActorsScreen
 import com.example.testCompose.presentation.ui.compose.movies.ArticleScreen
 import com.example.testCompose.presentation.ui.compose.movies.MoviesScreen
 import com.example.testCompose.presentation.ui.compose.movies.SimilarMoviesScreen
 import com.example.testCompose.presentation.ui.compose.savedMovies.SavedMoviesScreen
-import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.FlowPreview
 
 sealed class MainDestinations(val destination: String) {
@@ -31,9 +30,9 @@ sealed class MainDestinations(val destination: String) {
         const val SIMILAR_DETAIL = "/{movieItem}"
         const val SIMILAR_ITEM = "movieItem"
     }
+    object ActorsRoute: MainDestinations("actors")
 }
 
-@ExperimentalPagerApi
 @ExperimentalMaterialApi
 @FlowPreview
 @ExperimentalComposeUiApi
@@ -47,7 +46,7 @@ fun NavGraph(
 ) {
     NavHost(navController = navController, startDestination = startDestinations) {
         composable(MainDestinations.MoviesRoute.destination) {
-            MoviesScreen(navController, scaffoldState, hiltViewModel())
+            MoviesScreen(navController, scaffoldState, hiltViewModel(), changeMenuState = {})
         }
 
         composable(MainDestinations.SavedMoviesRoute.destination) {
@@ -81,6 +80,9 @@ fun NavGraph(
             if (similarMovieItem != null) {
                 SimilarMoviesScreen(navController, scaffoldState, movieId = similarMovieItem)
             }
+        }
+        composable(MainDestinations.ActorsRoute.destination) {
+            ActorsScreen(navController)
         }
     }
 

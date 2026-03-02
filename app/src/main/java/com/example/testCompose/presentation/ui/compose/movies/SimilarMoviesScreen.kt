@@ -4,16 +4,21 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,28 +26,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.Pager
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.testCompose.BuildConfig
+import com.example.testCompose.R
 import com.example.testCompose.domain.entity.similarMovies.SimilarMoviesItems
 import com.example.testCompose.presentation.ui.compose.MainDestinations
-import com.example.testCompose.presentation.ui.compose.components.MovieTitleText
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
 import com.example.testCompose.presentation.viewModel.MoviesViewModel
 import com.example.testCompose.presentation.viewModel.SearchMovieViewModel
 import com.example.testCompose.presentation.viewModel.SimilarMoviesUiState
 import com.example.testCompose.presentation.viewModel.SimilarMoviesViewModel
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.FlowPreview
-import testCompose.BuildConfig
-import testCompose.R
 
 @FlowPreview
 @ExperimentalFoundationApi
@@ -124,6 +123,7 @@ fun SimilarMoviesScreen(
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @ExperimentalFoundationApi
 @Composable
 fun ShowSimilarMovies(
@@ -134,23 +134,19 @@ fun ShowSimilarMovies(
 ) {
     if (similarMovies != null) {
         val lazySimilarMovies = similarMovies.flow.collectAsLazyPagingItems()
+        val pullRefreshState = rememberPullRefreshState(
+            refreshing = uiState.isRefreshing,
+            onRefresh = onRefresh
+        )
 
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(isRefreshing = uiState.isRefreshing),
-            onRefresh = { onRefresh() }, indicatorAlignment = Alignment.TopCenter, indicator =
-            { state, refreshTrigger ->
-                SwipeRefreshIndicator(
-                    state = state,
-                    refreshTriggerDistance = refreshTrigger,
-                    scale = true,
-                    contentColor = Color.Red
-                )
-            }) {
-            LazyVerticalGrid(cells = GridCells.Fixed(3),
-                state = rememberLazyListState(),
-                modifier = Modifier.background(
-                    Color.Black
-                ),
+        Box(
+            modifier = Modifier
+                .pullRefresh(pullRefreshState)
+                .background(Color.Black)
+        ) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                state = rememberLazyGridState(),
                 content = {
                     items(lazySimilarMovies.itemCount) { index ->
                         lazySimilarMovies[index]?.let {
@@ -165,6 +161,13 @@ fun ShowSimilarMovies(
                         }
                     }
                 }
+            )
+
+            PullRefreshIndicator(
+                refreshing = uiState.isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = Color.Red
             )
         }
     }

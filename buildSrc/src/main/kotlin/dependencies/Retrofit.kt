@@ -7,7 +7,6 @@ object Retrofit {
      * https://mvnrepository.com/artifact/com.squareup.retrofit2/converter-gson
      */
     const val converterGson = "com.squareup.retrofit2:converter-gson:${Versions.retrofit}"
-
     /**
      * [Retrofit 2]
      * https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit
@@ -18,7 +17,7 @@ object Retrofit {
      * [Interceptor OkHttp]
      * https://mvnrepository.com/artifact/com.squareup.okhttp3/logging-interceptor
      */
-    const val interceptor = "com.squareup.okhttp3:logging-interceptor:${Versions.interceptor}"
+    const val interceptor = "com.squareup.okhttp3:logging-interceptor:${Versions.okhttp}"
 
     /**
      * [Gson ]
@@ -30,5 +29,5 @@ object Retrofit {
      * [OkHttp ]
      * https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
      */
-    const val okhttp = "com.squareup.okhttp3:okhttp:${Versions.interceptor}"
+    const val okhttp = "com.squareup.okhttp3:okhttp:${Versions.okhttp}"
 }

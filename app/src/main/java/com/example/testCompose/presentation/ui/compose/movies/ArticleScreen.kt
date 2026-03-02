@@ -10,6 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.testCompose.BuildConfig
+import com.example.testCompose.R
 import com.example.testCompose.common.CircularProgressBar
 import com.example.testCompose.common.convertDate
 import com.example.testCompose.common.fromMinutesToHHmm
@@ -41,11 +46,7 @@ import com.example.testCompose.presentation.viewModel.MovieDetailUiState
 import com.example.testCompose.presentation.viewModel.MovieDetailViewModel
 import com.example.testCompose.presentation.viewModel.MovieVideoViewModel
 import com.example.testCompose.presentation.viewModel.ReviewsViewModel
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import testCompose.BuildConfig
-import testCompose.R
+
 
 @SuppressLint("RememberReturnType")
 @ExperimentalMaterialApi
@@ -66,12 +67,13 @@ fun ArticleScreen(
     val uiStateReview by reviewViewModel.uiState.collectAsState()
 
     LaunchedEffect(true) {
+        reviewViewModel.getMovieReview(movieId = movieId)
         movieDetailViewModel.apply {
             getMovieDetails(movieId = movieId)
             favouriteMovie(movieId = movieId)
+            getMovieActors(movieId = movieId)
         }
         movieVideoViewModel.getVideo(movieId = movieId)
-        reviewViewModel.getMovieReview(movieId = movieId)
     }
 
     Scaffold(
@@ -92,28 +94,34 @@ fun ArticleScreen(
                 }
             )
         },
-        content = {
+        content = { paddingValues ->
             CircularProgressBar(uiState.isLoadingProgressBar)
+
             Column(
                 Modifier
                     .fillMaxSize()
+                    .padding(paddingValues)
             ) {
-                SwipeRefresh(
-                    state = rememberSwipeRefreshState(isRefreshing = uiState.isRefreshing),
+                val pullToRefreshState = rememberPullToRefreshState()
+
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
                     onRefresh = {
                         movieDetailViewModel.getMovieDetails(movieId)
                         movieVideoViewModel.getVideo(movieId)
                         reviewViewModel.getMovieReview(movieId)
                     },
-                    indicatorAlignment = Alignment.TopCenter,
-                    indicator = { state, trigger ->
-                        SwipeRefreshIndicator(
-                            state = state,
-                            refreshTriggerDistance = trigger,
-                            scale = true,
-                            contentColor = Color.Red
+                    state = pullToRefreshState,
+                    modifier = Modifier.fillMaxSize(),
+                    indicator = {
+                        PullToRefreshDefaults.Indicator(
+                            state = pullToRefreshState,
+                            isRefreshing = uiState.isRefreshing,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            color = Color.Red
                         )
-                    }) {
+                    }
+                ) {
                     MovieItemDetail(
                         movie = uiState.movieDetailObject,
                         movieVideo = uiStateVideo.videoList,
@@ -122,9 +130,13 @@ fun ArticleScreen(
                         similarId = movieId
                     )
                 }
+
                 ShowError(
                     uiState = uiState,
-                    onChangeNetworkNotificationStateClicked = { movieDetailViewModel.changeIsNetworkError() })
+                    onChangeNetworkNotificationStateClicked = {
+                        movieDetailViewModel.changeIsNetworkError()
+                    }
+                )
             }
         },
     )

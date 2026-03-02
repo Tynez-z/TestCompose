@@ -1,34 +1,29 @@
+
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-kapt")
-    id("dagger.hilt.android.plugin")
-    id("com.github.ben-manes.versions")
-    id("kotlinx-serialization")
-    id("com.google.devtools.ksp") version "1.5.31-1.0.1"
-
-    kotlin("kapt")
-    kotlin("plugin.serialization")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+//    id("kotlinx-serialization")
+    id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.devtools.ksp")
 }
 
 kotlin {
-    sourceSets {
-        getByName("main") {
-            kotlin.srcDir(File("build/generated/ksp/debug/kotlin"))
-        }
-        getByName("main") {
-            kotlin.srcDir(File("build/generated/ksp/release/kotlin"))
-        }
+    compilerOptions {
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+
     }
 }
-
 android {
-    compileSdk = 31
+    namespace = "com.example.testCompose"
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.testCompose"
-        minSdk = 24
-        targetSdk = 31
+        minSdk = 28
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -36,6 +31,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -51,7 +51,6 @@ android {
 
         release {
             isMinifyEnabled = false
-//            proguardFiles
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
             buildConfigField("String", "API_KEY", "\"cfacbd1b17a84295a04a55d573daa740\"")
@@ -63,47 +62,53 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = Versions.compose
-    }
-    packagingOptions {
+
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 }
 
+
 dependencies {
+    implementation("net.zetetic:sqlcipher-android:4.13.0")
+    implementation("androidx.sqlite:sqlite:2.4.0")
     /**
      * [YouTube extractor for ExoPlayer]
      */
     implementation ("com.github.evgenyneu:js-evaluator-for-android:v5.0.0")
     implementation ("com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT")
+    implementation("androidx.compose.ui:ui:1.10.0")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.foundation:foundation:1.10.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.10.0")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.10.0")
 
-    implementation("io.github.raamcosta.compose-destinations:core:1.5.1-beta")
-    ksp("io.github.raamcosta.compose-destinations:ksp:1.5.1-beta")
+//    implementation("io.github.raamcosta.compose-destinations:core:1.10.2")
+//    add("ksp", "io.github.raamcosta.compose-destinations:ksp:2.2.0")
+    ksp("io.github.raamcosta.compose-destinations:ksp:2.2.0")
+    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0")
 
+    implementation(platform(Dependencies.compose.bom))
     Dependencies.compose.apply {
         implementation(ui)
         implementation(material)
+        implementation(preview)
         implementation(tooling)
-        implementation(layout)
         implementation(constraint)
         implementation(navigation)
         implementation(hiltNavigationCompose)
-        implementation(swipeRefresh)
+//        implementation(swipeRefresh)
         implementation(pagingCompose)
         implementation(coilCompose)
-        implementation(uiUtill)
+        implementation(coilNetwork)
+        implementation(uiUtil)
+        implementation(iconsCore)
+        implementation(iconsExtended)
     }
 
     Dependencies.other.apply {
@@ -111,34 +116,26 @@ dependencies {
         implementation(ktxCore)
         implementation(appCompat)
         implementation(lifecycle)
-        implementation(coil)
+//        implementation(coil)
         implementation(paging)
-        implementation(exoPlayer)
-        implementation(exoPlayerCore)
-        implementation(exoPlayerHls)
-        implementation(exoPlayerUi)
+        implementation(media3ExoPlayer)
+        implementation(media3Hls)
+        implementation(media3Ui)
         implementation(dataStore)
         implementation(serialization)
     }
 
-    Dependencies.accompanist.apply {
-        implementation(insets)
-        implementation(pager)
-        implementation(pagerIndicators)
-        implementation(swiperefresh)
-    }
-
     Dependencies.hilt.apply {
         implementation(hiltAndroid)
-        kapt(hiltCompiler)
-        kapt(daggerHiltCompiler)
-        kaptAndroidTest(daggerHiltCompiler)
+        ksp(hiltCompiler)
     }
 
     Dependencies.room.apply {
         implementation(runtime)
         implementation(ktx)
-        kapt(compiler)
+        implementation(roomPagination)
+        implementation(pagination)
+        ksp(compiler)
     }
 
     Dependencies.retrofit.apply {

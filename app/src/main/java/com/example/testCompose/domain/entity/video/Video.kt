@@ -1,6 +1,6 @@
 package com.example.testCompose.domain.entity.video
 
-import com.example.testCompose.data.db.remote.service.MovieVideo
+import com.example.testCompose.data.remote.api.MovieVideo
 
 data class Video(
     val id: String,

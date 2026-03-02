@@ -1,14 +1,14 @@
 package com.example.testCompose.data
 
 import android.content.Context
+import com.example.testCompose.R
 import com.example.testCompose.common.TIMEOUT_SEC
-import com.example.testCompose.data.db.remote.service.ApiMovies
+import com.example.testCompose.data.remote.api.ApiMovies
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import testCompose.R
 import java.util.concurrent.TimeUnit
 
 object ServiceFactory {

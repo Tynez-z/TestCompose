@@ -19,4 +19,8 @@ object Room {
      * https://developer.android.com/jetpack/androidx/releases/room
      */
     const val ktx = "androidx.room:room-ktx:${Versions.room}"
+
+    const val roomPagination = "androidx.room:room-paging:${Versions.room}"
+
+    const val pagination = "androidx.paging:paging-runtime:${Versions.pagination}"
 }

@@ -2,6 +2,8 @@ package com.example.testCompose.presentation.ui.compose.savedMovies
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.testCompose.BuildConfig
 import com.example.testCompose.common.applyGradient
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
 import com.example.testCompose.domain.entity.movies
@@ -32,17 +35,12 @@ import com.example.testCompose.presentation.ui.compose.components.BottomSheetLay
 import com.example.testCompose.presentation.ui.compose.components.Gauge
 import com.example.testCompose.presentation.ui.compose.components.NetworkImage
 import com.example.testCompose.presentation.viewModel.SavedMoviesViewModel
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.calculateCurrentOffsetForPage
-import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.FlowPreview
-import testCompose.BuildConfig
-import testCompose.R
+import com.example.testCompose.R
+import com.example.testCompose.domain.entity.savedMovies.SavedMovie
 import kotlin.math.absoluteValue
 
 
-@ExperimentalPagerApi
 @ExperimentalFoundationApi
 @FlowPreview
 @ExperimentalComposeUiApi
@@ -63,25 +61,21 @@ fun SavedMoviesScreen(navController: NavController, scaffoldState: ScaffoldState
     }
 }
 
-@ExperimentalPagerApi
 @Composable
-fun ListOnPlayingMovies(movies: List<MovieDetails>, navController: NavController) {
+fun ListOnPlayingMovies(movies: List<SavedMovie>, navController: NavController) {
     if (movies.isNotEmpty()) {
+        val pagerState = rememberPagerState { movies.size }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
             HorizontalPager(
-                count = movies.size,
+                state = pagerState,
                 contentPadding = PaddingValues(horizontal = 55.dp),
-                state = rememberPagerState(),
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                val pageOffset = calculateCurrentOffsetForPage(page).absoluteValue
+                val pageOffset = (pagerState.currentPage - page + pagerState.currentPageOffsetFraction).absoluteValue
                 CardMovieOnPLaying(pageOffset = pageOffset, movie = movies[page]) { id ->
-                    movies.find { movieDetails ->
-                        movieDetails.id == id
-                    }
                     navController.navigate(MainDestinations.ArticleMoviesRoute.destination + "/${id}")
                 }
             }
@@ -90,7 +84,7 @@ fun ListOnPlayingMovies(movies: List<MovieDetails>, navController: NavController
 }
 
 @Composable
-fun CardMovieOnPLaying(pageOffset: Float, movie: MovieDetails, onClick: (Int) -> Unit) {
+fun CardMovieOnPLaying(pageOffset: Float, movie: SavedMovie, onClick: (Int) -> Unit) {
     Column(
         modifier = Modifier
 //            .padding(8.dp)
@@ -116,7 +110,7 @@ fun CardMovieOnPLaying(pageOffset: Float, movie: MovieDetails, onClick: (Int) ->
 }
 
 @Composable
-fun CardMovie(movie: MovieDetails, onClick: (Int) -> Unit) {
+fun CardMovie(movie: SavedMovie, onClick: (Int) -> Unit) {
     Column(
         modifier = Modifier
     ) {
@@ -148,7 +142,7 @@ fun CardMovie(movie: MovieDetails, onClick: (Int) -> Unit) {
 }
 
 @Composable
-fun MovieInfoForCard(movie: MovieDetails) {
+fun MovieInfoForCard(movie: SavedMovie) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .padding(end = 20.dp, bottom = 15.dp)

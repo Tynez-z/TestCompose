@@ -3,16 +3,37 @@ package com.example.testCompose.presentation.ui.compose.components
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentColor
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,11 +57,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.testCompose.BuildConfig
+import com.example.testCompose.R
 import com.example.testCompose.domain.entity.detailMovie.MovieDetails
-import com.example.testCompose.domain.entity.movies
+import com.example.testCompose.domain.entity.moviesFromRequest
 import kotlinx.coroutines.launch
-import testCompose.BuildConfig
-import testCompose.R
 
 @ExperimentalMaterialApi
 @SuppressLint("UnrememberedMutableState")
@@ -57,6 +78,7 @@ fun BottomSheetLayout(
             shape = RoundedCornerShape(topStartPercent = 5, topEndPercent = 5),
             modifier = Modifier
                 .wrapContentWidth()
+                .background(color = Color.Black.copy(alpha = 0.6f))
                 .height(350.dp)
                 .clickable { onMovieClick(selectedMovie.id) }
         ) {
@@ -292,7 +314,7 @@ fun EpisodesAndInfo(modifier: Modifier) {
 fun BottomSheetPreview() {
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     BottomSheetLayout(
-        selectedMovie = movies.last(),
+        selectedMovie = moviesFromRequest.last(),
         onMovieClick = {},
         bottomSheetState = sheetState)
 }

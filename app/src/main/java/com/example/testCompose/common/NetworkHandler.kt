@@ -3,11 +3,12 @@ package com.example.testCompose.common
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NetworkHandler @Inject constructor(private val context: Context) {
+class NetworkHandler @Inject constructor(@ApplicationContext private val context: Context) {
     val isConnected get() = context.network != null
 }
 
